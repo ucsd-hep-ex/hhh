@@ -1,3 +1,4 @@
+import logging
 import os.path as osp
 
 import awkward as ak
@@ -7,6 +8,8 @@ import uproot
 from coffea.nanoevents import BaseSchema, NanoEventsFactory
 from coffea.nanoevents.methods import vector
 from torch_geometric.data import Data, InMemoryDataset
+
+logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
 FEATURE_BRANCHES = ["jet{i}Pt", "jet{i}Eta", "jet{i}Phi", "jet{i}DeepFlavB", "jet{i}JetId"]
@@ -99,7 +102,7 @@ class HHHGraph(InMemoryDataset):
 
             for i in range(0, n_events):
                 if len(pt[i]) < 2:
-                    print("less than 2 jets; skipping")
+                    logging.warning("Less than 2 jets; skipping event")
                     continue
                 # stack node feature vector
                 x = torch.tensor(np.stack([np.log(pt[i]), eta[i], phi[i], btag[i], jet_id[i]], axis=-1))
@@ -109,11 +112,12 @@ class HHHGraph(InMemoryDataset):
                 edge_index = torch.tensor(edge_indices[i].to_list(), dtype=torch.long).t().contiguous()
 
                 # get true index
-                higgs_idx_trch = torch.tensor(higgs_idx[i], dtype=torch.int32)
+                higgs_idx_trch = torch.tensor(higgs_idx[i], dtype=torch.long)
                 condition = torch.logical_and(
                     higgs_idx_trch[edge_index[0]] == higgs_idx_trch[edge_index[1]], higgs_idx_trch[edge_index[0]] > 0
                 )
                 y = torch.where(condition, higgs_idx_trch[edge_index[0]], 0)
+                y = y.to(dtype=torch.long)
 
                 data = Data(x=x, edge_attr=edge_attr, edge_index=edge_index, y=y)
                 data_list.append(data)
