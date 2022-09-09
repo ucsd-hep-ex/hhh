@@ -9,7 +9,7 @@ docker run -it jmduarte/hhh bash
 Check out this GitHub repository:
 ```bash
 cd work
-git clone git@github.com:jmduarte/hhh
+git clone git@github.com:ucsd-hep-ex/hhh
 ```
 
 Install the Python package:
