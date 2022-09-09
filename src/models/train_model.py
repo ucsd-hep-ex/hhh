@@ -3,6 +3,7 @@ import os.path as osp
 
 import torch
 import torch.nn.functional as F
+from focal_loss import FocalLoss
 
 from src.data.hhh_graph import HHHGraph
 from src.models.transformer_model import TransformerModel
@@ -10,12 +11,12 @@ from src.models.transformer_model import TransformerModel
 logging.basicConfig(level=logging.INFO)
 
 
-def train(model, data, optimizer):
+def train(model, data, optimizer, loss_fcn=F.cross_entropy):
     model.train()
 
     optimizer.zero_grad()
     out = model(data.x, data.edge_index, data.edge_attr)
-    loss = F.cross_entropy(out, data.y)
+    loss = loss_fcn(out, data.y)
     loss.backward()
     optimizer.step()
 
@@ -28,9 +29,12 @@ def test(model, data):
 
     out = model(data.x, data.edge_index, data.edge_attr)
     pred = out.argmax(dim=-1)
-    test_acc = int((pred == data.y).sum()) / pred.size(0)
 
-    return test_acc
+    acc = int((pred == data.y).sum()) / pred.size(0)
+    mask = data.y >= 7
+    acc_double_match = int((pred[mask] == data.y[mask]).sum()) / pred[mask].size(0)
+
+    return acc, acc_double_match
 
 
 def main():
@@ -60,14 +64,20 @@ def main():
 
     best_val_acc = 0
     stale_epochs = 0
-    patience = 10
+    patience = 100
+
+    focal_loss = FocalLoss()
 
     for epoch in range(1, 101):
-        loss = train(model, train_data, optimizer)
-        train_acc = test(model, train_data)
-        val_acc = test(model, val_data)
+        loss = train(model, train_data, optimizer, loss_fcn=focal_loss)
+        train_acc, train_acc_double_match = test(model, train_data)
+        val_acc, val_acc_double_match = test(model, val_data)
 
-        logging.info(f"Epoch: {epoch:03d}, Train Loss: {loss:.4f}, Train Acc: {train_acc:.4f}, Val Acc: {val_acc:.4f}")
+        logging.info(
+            f"Epoch: {epoch:03d}, Train Loss: {loss:.4f}, Train Acc: {train_acc:.4f}, "
+            + f"Train Acc (Double Match): {train_acc_double_match:.4f}, "
+            + f"Val Acc: {val_acc:.4f}, Val Acc (Double Match): {val_acc_double_match:.4f}"
+        )
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
