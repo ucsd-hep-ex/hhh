@@ -40,18 +40,16 @@ MAPPING[22] = 8
 MAPPING[33] = 9
 
 N_JETS = 10
+MIN_JET_PT = 20
+MIN_JETS = 6
 N_HIGGS = 3
 FEATURE_BRANCHES = ["jet{i}Pt", "jet{i}Eta", "jet{i}Phi", "jet{i}DeepFlavB", "jet{i}JetId"]
 LABEL_BRANCHES = ["jet{i}HiggsMatchedIndex"]
 ALL_BRANCHES = [branch.format(i=i) for i in range(1, N_JETS + 1) for branch in FEATURE_BRANCHES + LABEL_BRANCHES]
 
 
-def get_jet_feature(name, events):
-    return ak.concatenate([np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, N_JETS + 1)], axis=-1)
-
-
-def get_higgs_feature(name, events):
-    return ak.concatenate([np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, N_HIGGS + 1)], axis=-1)
+def get_n_features(name, events, n):
+    return ak.concatenate([np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, n + 1)], axis=-1)
 
 
 def get_edge_index(arr):
@@ -65,7 +63,9 @@ def get_edge_index(arr):
 
 
 def compute_edge_features(pt, eta, phi, higgs_idx, higgs_pt, higgs_eta, higgs_phi):
-    jets = ak.zip({"pt": pt, "eta": eta, "phi": phi, "mass": ak.zeros_like(pt)}, with_name="Momentum4D")
+    jets = ak.zip(
+        {"pt": pt, "eta": eta, "phi": phi, "mass": ak.zeros_like(pt), "higgs_idx": higgs_idx}, with_name="Momentum4D"
+    )
 
     # single direction
     # jet_pairs = ak.combinations(jets, 2, fields=["j0", "j1"])
@@ -94,14 +94,8 @@ def compute_edge_features(pt, eta, phi, higgs_idx, higgs_pt, higgs_eta, higgs_ph
     phi_jj = (jet_pairs["j0"] + jet_pairs["j1"]).phi
 
     # edge targets
-    # single direction
-    # higgs_idx_pairs = ak.combinations(higgs_idx, 2, fields=["i0", "i1"])
-    # both directions
-    higgs_idx_pairs = ak.cartesian({"i0": higgs_idx, "i1": higgs_idx})
-    higgs_idx_pairs = higgs_idx_pairs[mask_self_loops]
-
-    edge_match = ak.where(higgs_idx_pairs.i0 > -1, higgs_idx_pairs.i0, 0) + 10 * ak.where(
-        higgs_idx_pairs.i1 > -1, higgs_idx_pairs.i1, 0
+    edge_match = ak.where(jet_pairs["j0"].higgs_idx > -1, jet_pairs["j0"].higgs_idx, 0) + 10 * ak.where(
+        jet_pairs["j1"].higgs_idx > -1, jet_pairs["j1"].higgs_idx, 0
     )
     counts = ak.num(edge_match)
     edge_match = ak.unflatten(MAPPING[ak.flatten(edge_match)], counts)
@@ -141,19 +135,28 @@ class HHHGraph(InMemoryDataset):
                 in_file, treepath="Events", entry_start=self.entry_start, entry_stop=self.entry_stop, schemaclass=BaseSchema
             ).events()
 
-            higgs_pt = get_higgs_feature("genHiggs{i}Pt", events)
-            higgs_eta = get_higgs_feature("genHiggs{i}Eta", events)
-            higgs_phi = get_higgs_feature("genHiggs{i}Phi", events)
+            higgs_pt = get_n_features("genHiggs{i}Pt", events, N_HIGGS)
+            higgs_eta = get_n_features("genHiggs{i}Eta", events, N_HIGGS)
+            higgs_phi = get_n_features("genHiggs{i}Phi", events, N_HIGGS)
 
-            pt = get_jet_feature("jet{i}Pt", events)
-            eta = get_jet_feature("jet{i}Eta", events)
-            phi = get_jet_feature("jet{i}Phi", events)
-            btag = get_jet_feature("jet{i}DeepFlavB", events)
-            jet_id = get_jet_feature("jet{i}JetId", events)
-            higgs_idx = get_jet_feature("jet{i}HiggsMatchedIndex", events)
+            pt = get_n_features("jet{i}Pt", events, N_JETS)
+            eta = get_n_features("jet{i}Eta", events, N_JETS)
+            phi = get_n_features("jet{i}Phi", events, N_JETS)
+            btag = get_n_features("jet{i}DeepFlavB", events, N_JETS)
+            jet_id = get_n_features("jet{i}JetId", events, N_JETS)
+            higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
 
-            mask = pt > 20  # mask 0-padded jets
+            # remove jets below MIN_JET_PT (i.e. zero-padded jets)
+            mask = pt > MIN_JET_PT
+            pt = pt[mask]
+            eta = eta[mask]
+            phi = phi[mask]
+            btag = btag[mask]
+            jet_id = jet_id[mask]
+            higgs_idx = higgs_idx[mask]
 
+            # keep events with MIN_JETS jets
+            mask = ak.num(pt) >= MIN_JETS
             pt = pt[mask]
             eta = eta[mask]
             phi = phi[mask]
@@ -166,11 +169,11 @@ class HHHGraph(InMemoryDataset):
                 pt, eta, phi, higgs_idx, higgs_pt, higgs_eta, higgs_phi
             )
 
-            n_events = len(events)
+            n_events = len(pt)
 
             for i in range(0, n_events):
-                if len(pt[i]) < 6:
-                    logging.warning("Less than 6 jets; skipping event")
+                if len(pt[i]) < MIN_JETS:
+                    logging.warning(f"Less than {MIN_JETS} jets; skipping event")
                     continue
                 # stack node feature vector
                 x = torch.tensor(np.stack([np.log(pt[i]), eta[i], phi[i], btag[i], jet_id[i]], axis=-1))

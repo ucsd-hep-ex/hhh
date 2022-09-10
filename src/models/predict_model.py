@@ -2,13 +2,19 @@ import itertools
 import logging
 import os.path as osp
 
+import awkward as ak
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import uproot
+import vector
+from coffea.nanoevents import BaseSchema, NanoEventsFactory
 from sklearn.metrics import confusion_matrix
 
-from src.data.hhh_graph import HHHGraph
+from src.data.hhh_graph import MIN_JET_PT, MIN_JETS, N_JETS, HHHGraph, get_n_features
 from src.models.transformer_model import TransformerModel
+
+vector.register_awkward()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,7 +30,8 @@ def plot_confusion_matrix(cm, classes, normalize=False, title="Confusion matrix"
     fig = plt.figure()
     plt.imshow(cm, interpolation="nearest", cmap=cmap)
     cbar = plt.colorbar()
-    plt.clim(0, 1)
+    if normalize:
+        plt.clim(0, 1)
     cbar.set_label(title)
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes, rotation=45)
@@ -37,6 +44,7 @@ def plot_confusion_matrix(cm, classes, normalize=False, title="Confusion matrix"
 
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
+    plt.tight_layout()
     return fig
 
 
@@ -52,7 +60,7 @@ def predict(model, data):
 def main():
 
     test_root = osp.join(osp.dirname(osp.realpath(__file__)), "..", "..", "data/test")
-    test_dataset = HHHGraph(root=test_root, entry_start=20_000, entry_stop=30_000)
+    test_dataset = HHHGraph(root=test_root, entry_start=20_000, entry_stop=21_000)
     model_file = osp.join(osp.dirname(osp.realpath(__file__)), "..", "..", "models", "best_model.pt")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -81,8 +89,58 @@ def main():
     fig_name = "confusion_matrix.pdf"
     logging.info(f"Plotting confusion matrix to: {fig_name}")
     cm = confusion_matrix(test_data.y.numpy(), pred.numpy())
-    plot_confusion_matrix(cm, classes=["no H", "H1", "H2", "H3", "H1H2", "H1H3", "H2H3", "H1H1", "H2H2", "H3H3"])
+    plot_confusion_matrix(
+        cm, normalize=False, classes=["no H", "H1", "H2", "H3", "H1H2", "H1H3", "H2H3", "H1H1", "H2H2", "H3H3"]
+    )
     plt.savefig(fig_name)
+
+    in_file = uproot.open(osp.join(test_dataset.raw_dir, "..", "..", test_dataset.raw_file_names[0]))
+    events = NanoEventsFactory.from_root(
+        in_file,
+        treepath="Events",
+        entry_start=test_dataset.entry_start,
+        entry_stop=test_dataset.entry_stop,
+        schemaclass=BaseSchema,
+    ).events()
+
+    pt = get_n_features("jet{i}Pt", events, N_JETS)
+    eta = get_n_features("jet{i}Eta", events, N_JETS)
+    phi = get_n_features("jet{i}Phi", events, N_JETS)
+    btag = get_n_features("jet{i}DeepFlavB", events, N_JETS)
+    jet_id = get_n_features("jet{i}JetId", events, N_JETS)
+    higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
+
+    # remove jets below MIN_JET_PT (i.e. zero-padded jets)
+    mask = pt > MIN_JET_PT
+    pt = pt[mask]
+    eta = eta[mask]
+    phi = phi[mask]
+    btag = btag[mask]
+    jet_id = jet_id[mask]
+    higgs_idx = higgs_idx[mask]
+
+    # keep events with MIN_JETS jets
+    mask = ak.num(pt) >= MIN_JETS
+    pt = pt[mask]
+    eta = eta[mask]
+    phi = phi[mask]
+    btag = btag[mask]
+    jet_id = jet_id[mask]
+    higgs_idx = higgs_idx[mask]
+
+    jets = ak.zip(
+        {
+            "pt": pt,
+            "eta": eta,
+            "phi": phi,
+            "mass": ak.zeros_like(pt),
+            "btag": btag,
+            "jet_id": jet_id,
+            "higgs_idx": higgs_idx,
+        },
+        with_name="Momentum4D",
+    )
+    print(jets)
 
 
 if __name__ == "__main__":
