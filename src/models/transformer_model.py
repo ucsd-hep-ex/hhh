@@ -1,16 +1,16 @@
 import torch
-from torch.nn import LayerNorm, Linear
+from torch.nn import LayerNorm, Linear, Module, ModuleList
 from torch_geometric.nn import TransformerConv
 
 
-class TransformerModel(torch.nn.Module):
+class TransformerModel(Module):
     def __init__(self, in_node_channels, in_edge_channels, num_classes, hidden_channels, num_layers, heads, dropout=0.3):
         super().__init__()
 
         if num_layers < 2:
             raise RuntimeError(f"Need at least 2 layers, but got {num_layers}")
 
-        self.convs = torch.nn.ModuleList(
+        self.convs = ModuleList(
             (
                 TransformerConv(
                     in_node_channels,
@@ -40,9 +40,9 @@ class TransformerModel(torch.nn.Module):
                 hidden_channels, num_classes, heads, concat=False, beta=True, dropout=dropout, edge_dim=in_edge_channels
             ),
         )
-        self.norms = torch.nn.ModuleList([LayerNorm(hidden_channels) for i in range(0, num_layers - 1)])
+        self.norms = ModuleList([LayerNorm(hidden_channels) for i in range(0, num_layers - 1)])
 
-        self.lins = torch.nn.ModuleList((Linear(num_classes * 2 + in_edge_channels, num_classes),))
+        self.lins = ModuleList((Linear(num_classes * 2 + in_edge_channels, num_classes),))
 
     def forward(self, x, edge_index, edge_attr):
         for conv, norm in zip(self.convs, self.norms):

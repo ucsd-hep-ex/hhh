@@ -5,9 +5,11 @@ import awkward as ak
 import numpy as np
 import torch
 import uproot
+import vector
 from coffea.nanoevents import BaseSchema, NanoEventsFactory
-from coffea.nanoevents.methods import vector
 from torch_geometric.data import Data, InMemoryDataset
+
+vector.register_awkward()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -53,23 +55,29 @@ def get_higgs_feature(name, events):
 
 
 def get_edge_index(arr):
-    return ak.argcombinations(arr, 2)
+    # single direction
+    # return ak.argcombinations(arr, 2)
+    # both directions
+    edge_index = ak.argcartesian([arr, arr])
+    one_index, two_index = ak.unzip(edge_index)
+    mask_self_loops = one_index != two_index
+    return edge_index[mask_self_loops]
 
 
 def compute_edge_features(pt, eta, phi, higgs_idx, higgs_pt, higgs_eta, higgs_phi):
-    jets = ak.zip(
-        {"pt": pt, "eta": eta, "phi": phi, "mass": ak.zeros_like(pt)},
-        with_name="PtEtaPhiMLorentzVector",
-        behavior=vector.behavior,
-    )
+    jets = ak.zip({"pt": pt, "eta": eta, "phi": phi, "mass": ak.zeros_like(pt)}, with_name="Momentum4D")
 
-    jet_pairs = ak.combinations(jets, 2, fields=["j0", "j1"])
+    # single direction
+    # jet_pairs = ak.combinations(jets, 2, fields=["j0", "j1"])
+    # both directions
+    jet_pairs = ak.cartesian({"j0": jets, "j1": jets})
+    mask_self_loops = ~(jet_pairs.j0 == jet_pairs.j1)
+    jet_pairs = jet_pairs[mask_self_loops]
 
     # in the future: can use higgses to check matching criteria
     higgses = ak.zip(  # noqa: F841
         {"pt": higgs_pt, "eta": higgs_eta, "phi": higgs_phi, "mass": ak.ones_like(higgs_pt) * 125.0},
-        with_name="PtEtaPhiMLorentzVector",
-        behavior=vector.behavior,
+        with_name="Momentum4D",
     )
 
     # helpers
@@ -77,7 +85,7 @@ def compute_edge_features(pt, eta, phi, higgs_idx, higgs_pt, higgs_eta, higgs_ph
     sum_pt = jet_pairs["j0"].pt + jet_pairs["j1"].pt
 
     # edge features
-    log_delta_r = np.log(jet_pairs["j0"].delta_r(jet_pairs["j1"]))
+    log_delta_r = np.log(jet_pairs["j0"].deltaR(jet_pairs["j1"]))
     log_mass2 = np.log((jet_pairs["j0"] + jet_pairs["j1"]).mass2)
     log_kt = np.log(min_pt) + log_delta_r
     log_z = np.log(min_pt / sum_pt)
@@ -86,7 +94,12 @@ def compute_edge_features(pt, eta, phi, higgs_idx, higgs_pt, higgs_eta, higgs_ph
     phi_jj = (jet_pairs["j0"] + jet_pairs["j1"]).phi
 
     # edge targets
-    higgs_idx_pairs = ak.combinations(higgs_idx, 2, fields=["i0", "i1"])
+    # single direction
+    # higgs_idx_pairs = ak.combinations(higgs_idx, 2, fields=["i0", "i1"])
+    # both directions
+    higgs_idx_pairs = ak.cartesian({"i0": higgs_idx, "i1": higgs_idx})
+    higgs_idx_pairs = higgs_idx_pairs[mask_self_loops]
+
     edge_match = ak.where(higgs_idx_pairs.i0 > -1, higgs_idx_pairs.i0, 0) + 10 * ak.where(
         higgs_idx_pairs.i1 > -1, higgs_idx_pairs.i1, 0
     )
