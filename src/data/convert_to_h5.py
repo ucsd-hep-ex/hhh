@@ -2,12 +2,12 @@ import logging
 import os.path as osp
 
 import awkward as ak
+import click
+import h5py
 import numpy as np
 import uproot
 import vector
 from coffea.nanoevents import BaseSchema, NanoEventsFactory
-import h5py
-import click
 
 vector.register_awkward()
 
@@ -28,16 +28,16 @@ def get_n_features(name, events, n):
 
 
 @click.command()
-@click.option('--out-file', default = "hhh_training.h5", help="Output file.")
-@click.option('--train-frac', default=0.95, help="Fraction for training.")
+@click.option("--out-file", default="hhh_training.h5", help="Output file.")
+@click.option("--train-frac", default=0.95, help="Fraction for training.")
 def main(out_file, train_frac):
     in_file = uproot.open(osp.join("data", RAW_FILE_NAME))
     num_entries = in_file["Events"].num_entries
     if "training" in out_file:
         entry_start = None
-        entry_stop = int(train_frac*num_entries)
+        entry_stop = int(train_frac * num_entries)
     else:
-        entry_start = int(train_frac*num_entries)
+        entry_start = int(train_frac * num_entries)
         entry_stop = None
     events = NanoEventsFactory.from_root(
         in_file, treepath="Events", entry_start=entry_start, entry_stop=entry_stop, schemaclass=BaseSchema
@@ -85,33 +85,34 @@ def main(out_file, train_frac):
     h2_bs = ak.fill_none(ak.pad_none(h2_bs, 2, clip=True), -1)
     h3_bs = ak.fill_none(ak.pad_none(h3_bs, 2, clip=True), -1)
 
-    h1_b1, h1_b2 = h1_bs[:,0], h1_bs[:,1]
-    h2_b1, h2_b2 = h2_bs[:,0], h2_bs[:,1]
-    h3_b1, h3_b2 = h3_bs[:,0], h3_bs[:,1]
+    h1_b1, h1_b2 = h1_bs[:, 0], h1_bs[:, 1]
+    h2_b1, h2_b2 = h2_bs[:, 0], h2_bs[:, 1]
+    h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
 
     h1_mask = ak.all(h1_bs != -1, axis=-1)
     h2_mask = ak.all(h2_bs != -1, axis=-1)
     h3_mask = ak.all(h3_bs != -1, axis=-1)
 
-    with h5py.File(osp.join("data", out_file), 'w') as output:
-        output.create_dataset(f"source/mask", data=mask.to_numpy())
-        output.create_dataset(f"source/btag", data=btag.to_numpy())
-        output.create_dataset(f"source/pt", data=pt.to_numpy())
-        output.create_dataset(f"source/eta", data=eta.to_numpy())
-        output.create_dataset(f"source/phi", data=phi.to_numpy())
-        output.create_dataset(f"source/jetid", data=jet_id.to_numpy())
+    with h5py.File(osp.join("data", out_file), "w") as output:
+        output.create_dataset("source/mask", data=mask.to_numpy())
+        output.create_dataset("source/btag", data=btag.to_numpy())
+        output.create_dataset("source/pt", data=pt.to_numpy())
+        output.create_dataset("source/eta", data=eta.to_numpy())
+        output.create_dataset("source/phi", data=phi.to_numpy())
+        output.create_dataset("source/jetid", data=jet_id.to_numpy())
 
-        output.create_dataset(f"h1/mask", data=h1_mask.to_numpy())
-        output.create_dataset(f"h1/b1", data=h1_b1.to_numpy())
-        output.create_dataset(f"h1/b2", data=h1_b2.to_numpy())
+        output.create_dataset("h1/mask", data=h1_mask.to_numpy())
+        output.create_dataset("h1/b1", data=h1_b1.to_numpy())
+        output.create_dataset("h1/b2", data=h1_b2.to_numpy())
 
-        output.create_dataset(f"h2/mask", data=h2_mask.to_numpy())
-        output.create_dataset(f"h2/b1", data=h2_b1.to_numpy())
-        output.create_dataset(f"h2/b2", data=h2_b2.to_numpy())
-        
-        output.create_dataset(f"h3/mask", data=h3_mask.to_numpy())
-        output.create_dataset(f"h3/b1", data=h3_b1.to_numpy())
-        output.create_dataset(f"h3/b2", data=h3_b2.to_numpy())
+        output.create_dataset("h2/mask", data=h2_mask.to_numpy())
+        output.create_dataset("h2/b1", data=h2_b1.to_numpy())
+        output.create_dataset("h2/b2", data=h2_b2.to_numpy())
+
+        output.create_dataset("h3/mask", data=h3_mask.to_numpy())
+        output.create_dataset("h3/b1", data=h3_b1.to_numpy())
+        output.create_dataset("h3/b2", data=h3_b2.to_numpy())
+
 
 if __name__ == "__main__":
     main()

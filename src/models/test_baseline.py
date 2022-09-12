@@ -3,15 +3,13 @@ import logging
 import os.path as osp
 
 import awkward as ak
+import click
 import numpy as np
-import torch
 import uproot
 import vector
-import itertools
 from coffea.nanoevents import BaseSchema, NanoEventsFactory
-import click
 
-from src.data.convert_to_h5 import MIN_JET_PT, MIN_JETS, N_JETS, get_n_features, RAW_FILE_NAME
+from src.data.convert_to_h5 import MIN_JET_PT, MIN_JETS, N_JETS, RAW_FILE_NAME, get_n_features
 
 vector.register_awkward()
 
@@ -20,19 +18,19 @@ logging.basicConfig(level=logging.INFO)
 HIGGS_MASS = 125.0
 # precompute possible jet assignments lookup table
 JET_ASSIGNMENTS = {}
-for nj in range(MIN_JETS, N_JETS+1):
+for nj in range(MIN_JETS, N_JETS + 1):
     a = list(itertools.combinations(range(nj), 2))
     b = np.array([(i, j, k) for i, j, k in itertools.combinations(a, 3) if len(set(i + j + k)) == MIN_JETS])
     JET_ASSIGNMENTS[nj] = b
 
+
 @click.command()
-@click.option('--test-frac', default=0.05, help="Fraction for testing.")
+@click.option("--test-frac", default=0.05, help="Fraction for testing.")
 def main(test_frac):
     in_file = uproot.open(osp.join("data", RAW_FILE_NAME))
     num_entries = in_file["Events"].num_entries
-    entry_start = int((1-test_frac)*num_entries)
+    entry_start = int((1 - test_frac) * num_entries)
     entry_stop = None
-    test_root = osp.join(osp.dirname(osp.realpath(__file__)), "..", "..", "data")
     events = NanoEventsFactory.from_root(
         in_file,
         treepath="Events",
@@ -90,22 +88,21 @@ def main(test_frac):
         mjj = (jets[i, JET_ASSIGNMENTS[nj][:, :, 0]] + jets[i, JET_ASSIGNMENTS[nj][:, :, 1]]).mass
         chi2 = ak.sum(np.square(mjj - HIGGS_MASS), axis=-1)
         chi2_argmin = ak.argmin(chi2, axis=-1)
-        truth = jets[i][JET_ASSIGNMENTS[nj][chi2_argmin]].higgs_idx.to_list()
-        higgs_1_reco[i] = ([1, 1] in truth)
-        higgs_2_reco[i] = ([2, 2] in truth)
-        higgs_3_reco[i] = ([3, 3] in truth)
+        truth = jets[i][JET_ASSIGNMENTS[nj][chi2_argmin]].higgs_idx
+        higgs_1_reco[i] = ak.any(ak.sum(truth == 1, axis=-1) == 2, axis=-1)
+        higgs_2_reco[i] = ak.any(ak.sum(truth == 2, axis=-1) == 2, axis=-1)
+        higgs_3_reco[i] = ak.any(ak.sum(truth == 3, axis=-1) == 2, axis=-1)
 
-
-    higgs_1_frac = np.sum(higgs_1_reco)/n_events
-    higgs_2_frac = np.sum(higgs_2_reco)/n_events
-    higgs_3_frac = np.sum(higgs_3_reco)/n_events
-    all_higgs_frac = np.sum(higgs_1_reco*higgs_2_reco*higgs_3_reco)/n_events
+    higgs_1_frac = np.sum(higgs_1_reco) / n_events
+    higgs_2_frac = np.sum(higgs_2_reco) / n_events
+    higgs_3_frac = np.sum(higgs_3_reco) / n_events
+    all_higgs_frac = np.sum(higgs_1_reco * higgs_2_reco * higgs_3_reco) / n_events
 
     logging.info("Method: 125 GeV")
-    loggig.info("Higgs 1 fraction: {higgs_1_frac:.4f}")
-    loggig.info("Higgs 2 fraction: {higgs_2_frac:.4f}")
-    loggig.info("Higgs 3 fraction: {higgs_3_frac:.4f}")
-    loggig.info("All Higgs fraction: {all_higgs_frac:.4f}")
+    logging.info(f"Higgs 1 fraction: {higgs_1_frac:.4f}")
+    logging.info(f"Higgs 2 fraction: {higgs_2_frac:.4f}")
+    logging.info(f"Higgs 3 fraction: {higgs_3_frac:.4f}")
+    logging.info(f"All Higgs fraction: {all_higgs_frac:.4f}")
 
 
 if __name__ == "__main__":
