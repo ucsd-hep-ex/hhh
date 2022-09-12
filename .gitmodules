@@ -1,0 +1,3 @@
+[submodule "SPANet"]
+	path = SPANet
+	url = git@github.com:ucsd-hep-ex/SPANet
