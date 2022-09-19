@@ -9,7 +9,13 @@ import uproot
 import vector
 from coffea.nanoevents import BaseSchema, NanoEventsFactory
 
-from src.data.convert_to_h5 import MIN_JET_PT, MIN_JETS, N_JETS, RAW_FILE_NAME, get_n_features
+from src.data.convert_to_h5 import (
+    MIN_JET_PT,
+    MIN_JETS,
+    N_JETS,
+    RAW_FILE_NAME,
+    get_n_features,
+)
 
 vector.register_awkward()
 
