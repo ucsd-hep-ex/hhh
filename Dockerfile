@@ -21,6 +21,7 @@ RUN pip install -q \
     weaver-core \
     pre-commit \
     ogb \
+    pytorch-lightning \
     torch-scatter \
     torch-sparse \
     torch-cluster \
