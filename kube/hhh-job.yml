@@ -15,7 +15,7 @@ spec:
         args:
         - "/opt/repo/hhh/SPANet/train.py"
         - -of
-        - "/opt/repo/hhh/SPANet/options_files/hhh.json"
+        - "/hhh-vol/options_files/hhh.json"
         - -l
         - "/hhh-vol/logs/"
         - --epochs

@@ -34,7 +34,12 @@ def evaluate_baseline(predictions, targets, masks, num_jets):
     evaluator = SymmetricEvaluator(event_info)
 
     minimum_jet_count = num_jets.min()
-    jet_limits = [f"== {minimum_jet_count}", f"== {minimum_jet_count + 1}", f">= {minimum_jet_count + 2}", None]
+    jet_limits = [
+        f"== {minimum_jet_count}",
+        f"== {minimum_jet_count + 1}",
+        f">= {minimum_jet_count + 2}",
+        None,
+    ]
 
     results = {}
     for jet_limit_name in jet_limits:
@@ -92,13 +97,25 @@ def main(test_file):
     chi2_argmin = ak.argmin(chi2, axis=-1)
 
     h1_bs = np.concatenate(
-        (np.array(in_file["h1"]["b1"])[:, np.newaxis], np.array(in_file["h1"]["b2"])[:, np.newaxis]), axis=-1
+        (
+            np.array(in_file["h1"]["b1"])[:, np.newaxis],
+            np.array(in_file["h1"]["b2"])[:, np.newaxis],
+        ),
+        axis=-1,
     )
     h2_bs = np.concatenate(
-        (np.array(in_file["h2"]["b1"])[:, np.newaxis], np.array(in_file["h2"]["b2"])[:, np.newaxis]), axis=-1
+        (
+            np.array(in_file["h2"]["b1"])[:, np.newaxis],
+            np.array(in_file["h2"]["b2"])[:, np.newaxis],
+        ),
+        axis=-1,
     )
     h3_bs = np.concatenate(
-        (np.array(in_file["h3"]["b1"])[:, np.newaxis], np.array(in_file["h3"]["b2"])[:, np.newaxis]), axis=-1
+        (
+            np.array(in_file["h3"]["b1"])[:, np.newaxis],
+            np.array(in_file["h3"]["b2"])[:, np.newaxis],
+        ),
+        axis=-1,
     )
     targets = [h1_bs, h2_bs, h3_bs]
 
