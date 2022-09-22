@@ -1,19 +1,14 @@
 import itertools
 import logging
-import os.path as osp
 
 import awkward as ak
 import click
 import h5py
 import numpy as np
 import vector
+from spanet.test import display_table, evaluate_predictions
 
-from SPANet.spanet.dataset.evaluator import EventInfo, SymmetricEvaluator
-from SPANet.test import display_table
 from src.data.convert_to_h5 import MIN_JETS, N_JETS
-
-EVENT_INFO_FILE = "SPANet/event_files/hhh.ini"
-
 
 vector.register_awkward()
 
@@ -28,41 +23,11 @@ for nj in range(MIN_JETS, N_JETS + 1):
     JET_ASSIGNMENTS[nj] = b
 
 
-def evaluate_baseline(predictions, targets, masks, num_jets):
-
-    event_info = EventInfo.read_from_ini(EVENT_INFO_FILE)
-    evaluator = SymmetricEvaluator(event_info)
-
-    minimum_jet_count = num_jets.min()
-    jet_limits = [
-        f"== {minimum_jet_count}",
-        f"== {minimum_jet_count + 1}",
-        f">= {minimum_jet_count + 2}",
-        None,
-    ]
-
-    results = {}
-    for jet_limit_name in jet_limits:
-        limited_predictions = predictions
-        limited_targets = targets
-        limited_masks = masks
-
-        if jet_limit_name is not None:
-            jet_limit = eval("num_jets {}".format(jet_limit_name))
-            limited_predictions = [p[jet_limit] for p in limited_predictions]
-            limited_targets = [t[jet_limit] for t in limited_targets]
-            limited_masks = [m[jet_limit] for m in limited_masks]
-
-        results[jet_limit_name] = evaluator.full_report_string(limited_predictions, limited_targets, limited_masks)
-        results[jet_limit_name]["event_jet_proportion"] = 1.0 if jet_limit_name is None else jet_limit.mean()
-
-    return results, jet_limits
-
-
 @click.command()
-@click.option("--test-file", default="hhh_testing.h5", help="File for testing")
-def main(test_file):
-    in_file = h5py.File(osp.join("data", test_file))
+@click.option("--test-file", default="data/hhh_testing.h5", help="File for testing")
+@click.option("--event-file", default="event_files/hhh.ini", help="Event file")
+def main(test_file, event_file):
+    in_file = h5py.File(test_file)
 
     pt = ak.Array(in_file["source"]["pt"])
     eta = ak.Array(in_file["source"]["eta"])
@@ -136,7 +101,7 @@ def main(test_file):
     ]
     num_jets = np.sum(mask, axis=-1).to_numpy()
 
-    results, jet_limits = evaluate_baseline(predictions, targets, masks, num_jets)
+    results, jet_limits = evaluate_predictions(predictions, targets, masks, num_jets, event_file)
     display_table(results, jet_limits)
 
 
