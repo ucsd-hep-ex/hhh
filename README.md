@@ -1,29 +1,45 @@
 # hhh
 
-Pull and start the Docker container:
+1. Pull and start the Docker container:
 ```bash
 docker pull jmduarte/hhh
 docker run -it jmduarte/hhh bash
 ```
 
-Check out this GitHub repository:
+2. Check out this GitHub repository:
 ```bash
 cd work
-git clone git@github.com:ucsd-hep-ex/hhh
+git clone git@github.com:ucsd-hep-ex/hhh --recurse-submodules
 ```
 
-Install the Python package:
+3. Install the Python package(s):
 ```bash
 cd hhh
 pip install -e .
+cd SPANet
+pip install -e .
 ```
 
-To run the training (WIP):
+4. Download and convert the dataset(s):
+Download ROOT TTree dataset `GluGluToHHHTo6B_SM.root` (Ask for location).
+
+Convert to training and testing HDF5 files.
 ```bash
-python src/models/train_model.py
+python src/data/convert_to_h5.py --out-file hhh_training.h5
+python src/data/convert_to_h5.py --out-file hhh_testing.h5
 ```
 
-To run the prediction and evaluation metrics (WIP):
+5. Run the training:
 ```bash
-python src/models/predict_model.py
+python SPANet/train.py -of SPANet/options_files/hhh.json
+```
+
+6. Evaluate the training (if output log directory is `spanet_output/version_0`):
+```bash
+python test.py spanet_output/version_0 -tf data/hhh_testing.h5
+```
+
+7. Evaluate the baseline:
+```bash
+python src/models/test_baseline.py
 ```
