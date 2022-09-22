@@ -37,14 +37,14 @@ python src/data/convert_to_h5.py --out-file hhh_testing.h5
 ## 5. Run the SPANet training
 Override options file with `--gpus 0` if no GPUs are available.
 ```bash
-python SPANet/train.py -of SPANet/options_files/hhh.json [--gpus 0]
+python SPANet/spanet/train.py -of options_files/hhh.json [--gpus 0]
 ```
 
 ## 6. Evaluate the SPANet training
 Assuming the output log directory is `spanet_output/version_0`.
 Add `--gpu` if a GPU is available.
 ```bash
-python test.py spanet_output/version_0 -tf data/hhh_testing.h5 [--gpu]
+python SPANet/spanet/test.py spanet_output/version_0 -tf data/hhh_testing.h5 [--gpu]
 ```
 
 ## 7. Evaluate the baseline method
