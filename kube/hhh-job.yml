@@ -16,6 +16,8 @@ spec:
         - "/opt/repo/hhh/SPANet/train.py"
         - -of
         - "/opt/repo/hhh/SPANet/options_files/hhh.json"
+        - -l
+        - "/hhh-vol/logs/"
         volumeMounts:
         - mountPath: /hhh-vol
           name: hhh-vol
