@@ -18,6 +18,8 @@ spec:
         - "/opt/repo/hhh/SPANet/options_files/hhh.json"
         - -l
         - "/hhh-vol/logs/"
+        - --epochs
+        - "500"
         volumeMounts:
         - mountPath: /hhh-vol
           name: hhh-vol

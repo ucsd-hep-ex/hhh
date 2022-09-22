@@ -7,8 +7,8 @@ import click
 import h5py
 import numpy as np
 import vector
-
 from spanet.dataset.evaluator import EventInfo, SymmetricEvaluator
+
 from SPANet.test import display_table
 from src.data.convert_to_h5 import MIN_JETS, N_JETS
 
