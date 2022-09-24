@@ -136,19 +136,14 @@ def main(out_file, train_frac):
     h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
 
     # mask whether Higgs can be reconstructed as 2 small-radius jet
-    h1_sj_mask = ak.all(h1_bs != -1, axis=-1)
-    h2_sj_mask = ak.all(h2_bs != -1, axis=-1)
-    h3_sj_mask = ak.all(h3_bs != -1, axis=-1)
+    h1_mask = ak.all(h1_bs != -1, axis=-1)
+    h2_mask = ak.all(h2_bs != -1, axis=-1)
+    h3_mask = ak.all(h3_bs != -1, axis=-1)
 
     # mask whether Higgs can be reconstructed as 1 large-radius jet
     h1_fj_mask = ak.all(h1_bb != -1, axis=-1)
     h2_fj_mask = ak.all(h2_bb != -1, axis=-1)
     h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
-
-    # mask whether Higgs can be reconstructed as either 1 large-radius jet or 2 small-radisu jets
-    h1_mask = h1_sj_mask + h1_fj_mask
-    h2_mask = h2_sj_mask + h2_fj_mask
-    h3_mask = h3_sj_mask + h3_fj_mask
 
     with h5py.File(osp.join("data", out_file), "w") as output:
         output.create_dataset("source/mask", data=mask.to_numpy())
@@ -172,21 +167,18 @@ def main(out_file, train_frac):
         output.create_dataset("source_fj/qcd", data=fj_qcd.to_numpy())
 
         output.create_dataset("h1/mask", data=h1_mask.to_numpy())
-        output.create_dataset("h1/sj_mask", data=h1_sj_mask.to_numpy())
         output.create_dataset("h1/fj_mask", data=h1_fj_mask.to_numpy())
         output.create_dataset("h1/b1", data=h1_b1.to_numpy())
         output.create_dataset("h1/b2", data=h1_b2.to_numpy())
         output.create_dataset("h1/bb", data=h1_bb.to_numpy())
 
         output.create_dataset("h2/mask", data=h2_mask.to_numpy())
-        output.create_dataset("h2/sj_mask", data=h2_sj_mask.to_numpy())
         output.create_dataset("h2/fj_mask", data=h2_fj_mask.to_numpy())
         output.create_dataset("h2/b1", data=h2_b1.to_numpy())
         output.create_dataset("h2/b2", data=h2_b2.to_numpy())
         output.create_dataset("h2/bb", data=h2_bb.to_numpy())
 
         output.create_dataset("h3/mask", data=h3_mask.to_numpy())
-        output.create_dataset("h3/sj_mask", data=h3_sj_mask.to_numpy())
         output.create_dataset("h3/fj_mask", data=h3_fj_mask.to_numpy())
         output.create_dataset("h3/b1", data=h3_b1.to_numpy())
         output.create_dataset("h3/b2", data=h3_b2.to_numpy())
