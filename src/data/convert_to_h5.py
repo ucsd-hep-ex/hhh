@@ -14,12 +14,10 @@ vector.register_awkward()
 logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
+N_FJETS = 3
 MIN_JET_PT = 20
+MIN_FJET_PT = 200
 MIN_JETS = 6
-N_HIGGS = 3
-FEATURE_BRANCHES = ["jet{i}Pt", "jet{i}Eta", "jet{i}Phi", "jet{i}DeepFlavB", "jet{i}JetId"]
-LABEL_BRANCHES = ["jet{i}HiggsMatchedIndex", "jet{i}HadronFlavour"]
-ALL_BRANCHES = [branch.format(i=i) for i in range(1, N_JETS + 1) for branch in FEATURE_BRANCHES + LABEL_BRANCHES]
 RAW_FILE_NAME = "GluGluToHHHTo6B_SM.root"
 
 
@@ -43,6 +41,7 @@ def main(out_file, train_frac):
         in_file, treepath="Events", entry_start=entry_start, entry_stop=entry_stop, schemaclass=BaseSchema
     ).events()
 
+    # small-radius jet info
     pt = get_n_features("jet{i}Pt", events, N_JETS)
     eta = get_n_features("jet{i}Eta", events, N_JETS)
     phi = get_n_features("jet{i}Phi", events, N_JETS)
@@ -51,7 +50,21 @@ def main(out_file, train_frac):
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, N_JETS)
 
-    # keep events with MIN_JETS jets
+    # large-radius jet info
+    fj_pt = get_n_features("fatJet{i}Pt", events, N_FJETS)
+    fj_eta = get_n_features("fatJet{i}Eta", events, N_FJETS)
+    fj_phi = get_n_features("fatJet{i}Phi", events, N_FJETS)
+    fj_mass = get_n_features("fatJet{i}Mass", events, N_FJETS)
+    fj_sdmass = get_n_features("fatJet{i}MassSD", events, N_FJETS)
+    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, N_FJETS)
+    fj_nsub = get_n_features("fatJet{i}NSubJets", events, N_FJETS)
+    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, N_FJETS)
+    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, N_FJETS)
+    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, N_FJETS)
+    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, N_FJETS)
+    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, N_FJETS)
+
+    # keep events with >= MIN_JETS small-radius jets
     mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
     pt = pt[mask]
     eta = eta[mask]
@@ -60,58 +73,124 @@ def main(out_file, train_frac):
     jet_id = jet_id[mask]
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
+    fj_pt = fj_pt[mask]
+    fj_eta = fj_eta[mask]
+    fj_phi = fj_phi[mask]
+    fj_mass = fj_mass[mask]
+    fj_sdmass = fj_sdmass[mask]
+    fj_regmass = fj_regmass[mask]
+    fj_nsub = fj_nsub[mask]
+    fj_tau32 = fj_tau32[mask]
+    fj_xbb = fj_xbb[mask]
+    fj_xqq = fj_xqq[mask]
+    fj_qcd = fj_qcd[mask]
+    fj_higgs_idx = fj_higgs_idx[mask]
 
-    # mask to define zero-padded jets
+    # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
+
+    # mask to define zero-padded large-radius jets
+    fj_mask = fj_pt > MIN_FJET_PT
 
     # require hadron_flavor == 5 (i.e. b-jet ghost association matching)
     higgs_idx = ak.where(higgs_idx != 0, ak.where(hadron_flavor == 5, higgs_idx, -1), 0)
 
+    # index of small-radius jet if Higgs is reconstructed
     h1_bs = ak.local_index(higgs_idx)[higgs_idx == 1]
     h2_bs = ak.local_index(higgs_idx)[higgs_idx == 2]
     h3_bs = ak.local_index(higgs_idx)[higgs_idx == 3]
 
-    check = np.unique(ak.count(h1_bs, axis=-1))
-    if 3 in check.to_list():
-        logging.warning("some 1st Higgs bosons match to 3 jets! Check truth")
-    check = np.unique(ak.count(h2_bs, axis=-1))
-    if 3 in check.to_list():
-        logging.warning("some 2nd Higgs bosons match to 3 jets! Check truth")
-    check = np.unique(ak.count(h3_bs, axis=-1))
-    if 3 in check.to_list():
-        logging.warning("some 3rd Higgs bosons match to 3 jets! Check truth")
+    # index of large-radius jet if Higgs is reconstructed
+    h1_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 1]
+    h2_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 2]
+    h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
+
+    # check/fix small-radius jet truth (ensure max 2 small-radius jets per higgs)
+    check = (
+        np.unique(ak.count(h1_bs, axis=-1)).to_list()
+        + np.unique(ak.count(h2_bs, axis=-1)).to_list()
+        + np.unique(ak.count(h3_bs, axis=-1)).to_list()
+    )
+    if 3 in check:
+        logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
+
+    # check/fix large-radius jet truth (ensure max 1 large-radius jet per higgs)
+    fj_check = (
+        np.unique(ak.count(h1_bb, axis=-1)).to_list()
+        + np.unique(ak.count(h2_bb, axis=-1)).to_list()
+        + np.unique(ak.count(h3_bb, axis=-1)).to_list()
+    )
+    if 2 in fj_check:
+        logging.warning("some Higgs bosons match to 2 large-radius jets! Check truth")
 
     h1_bs = ak.fill_none(ak.pad_none(h1_bs, 2, clip=True), -1)
     h2_bs = ak.fill_none(ak.pad_none(h2_bs, 2, clip=True), -1)
     h3_bs = ak.fill_none(ak.pad_none(h3_bs, 2, clip=True), -1)
 
+    h1_bb = ak.fill_none(ak.pad_none(h1_bb, 1, clip=True), -1)
+    h2_bb = ak.fill_none(ak.pad_none(h2_bb, 1, clip=True), -1)
+    h3_bb = ak.fill_none(ak.pad_none(h3_bb, 1, clip=True), -1)
+
     h1_b1, h1_b2 = h1_bs[:, 0], h1_bs[:, 1]
     h2_b1, h2_b2 = h2_bs[:, 0], h2_bs[:, 1]
     h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
 
-    h1_mask = ak.all(h1_bs != -1, axis=-1)
-    h2_mask = ak.all(h2_bs != -1, axis=-1)
-    h3_mask = ak.all(h3_bs != -1, axis=-1)
+    # mask whether Higgs can be reconstructed as 2 small-radius jet
+    h1_sj_mask = ak.all(h1_bs != -1, axis=-1)
+    h2_sj_mask = ak.all(h2_bs != -1, axis=-1)
+    h3_sj_mask = ak.all(h3_bs != -1, axis=-1)
+
+    # mask whether Higgs can be reconstructed as 1 large-radius jet
+    h1_fj_mask = ak.all(h1_bb != -1, axis=-1)
+    h2_fj_mask = ak.all(h2_bb != -1, axis=-1)
+    h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
+
+    # mask whether Higgs can be reconstructed as either 1 large-radius jet or 2 small-radisu jets
+    h1_mask = h1_sj_mask + h1_fj_mask
+    h2_mask = h2_sj_mask + h2_fj_mask
+    h3_mask = h3_sj_mask + h3_fj_mask
 
     with h5py.File(osp.join("data", out_file), "w") as output:
         output.create_dataset("source/mask", data=mask.to_numpy())
-        output.create_dataset("source/btag", data=btag.to_numpy())
         output.create_dataset("source/pt", data=pt.to_numpy())
         output.create_dataset("source/eta", data=eta.to_numpy())
         output.create_dataset("source/phi", data=phi.to_numpy())
+        output.create_dataset("source/btag", data=btag.to_numpy())
         output.create_dataset("source/jetid", data=jet_id.to_numpy())
 
+        output.create_dataset("source_fj/mask", data=fj_mask.to_numpy())
+        output.create_dataset("source_fj/pt", data=fj_pt.to_numpy())
+        output.create_dataset("source_fj/eta", data=fj_eta.to_numpy())
+        output.create_dataset("source_fj/phi", data=fj_phi.to_numpy())
+        output.create_dataset("source_fj/mass", data=fj_mass.to_numpy())
+        output.create_dataset("source_fj/sdmass", data=fj_sdmass.to_numpy())
+        output.create_dataset("source_fj/regmass", data=fj_regmass.to_numpy())
+        output.create_dataset("source_fj/nsub", data=fj_nsub.to_numpy())
+        output.create_dataset("source_fj/tau32", data=fj_tau32.to_numpy())
+        output.create_dataset("source_fj/xbb", data=fj_xbb.to_numpy())
+        output.create_dataset("source_fj/xqq", data=fj_xqq.to_numpy())
+        output.create_dataset("source_fj/qcd", data=fj_qcd.to_numpy())
+
         output.create_dataset("h1/mask", data=h1_mask.to_numpy())
+        output.create_dataset("h1/sj_mask", data=h1_sj_mask.to_numpy())
+        output.create_dataset("h1/fj_mask", data=h1_fj_mask.to_numpy())
         output.create_dataset("h1/b1", data=h1_b1.to_numpy())
         output.create_dataset("h1/b2", data=h1_b2.to_numpy())
+        output.create_dataset("h1/bb", data=h1_bb.to_numpy())
 
         output.create_dataset("h2/mask", data=h2_mask.to_numpy())
+        output.create_dataset("h2/sj_mask", data=h2_sj_mask.to_numpy())
+        output.create_dataset("h2/fj_mask", data=h2_fj_mask.to_numpy())
         output.create_dataset("h2/b1", data=h2_b1.to_numpy())
         output.create_dataset("h2/b2", data=h2_b2.to_numpy())
+        output.create_dataset("h2/bb", data=h2_bb.to_numpy())
 
         output.create_dataset("h3/mask", data=h3_mask.to_numpy())
+        output.create_dataset("h3/sj_mask", data=h3_sj_mask.to_numpy())
+        output.create_dataset("h3/fj_mask", data=h3_fj_mask.to_numpy())
         output.create_dataset("h3/b1", data=h3_b1.to_numpy())
         output.create_dataset("h3/b2", data=h3_b2.to_numpy())
+        output.create_dataset("h3/bb", data=h3_bb.to_numpy())
 
 
 if __name__ == "__main__":
