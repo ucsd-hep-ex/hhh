@@ -14,7 +14,7 @@ spec:
         - "python"
         args:
         - "/opt/repo/hhh/SPANet/test.py"
-        - "/hhh-vol/logs/spanet_output/version_5"
+        - "/hhh-vol/logs/spanet_output/version_9"
         - -tf
         - "/hhh-vol/data/hhh_testing.h5"
         volumeMounts:
