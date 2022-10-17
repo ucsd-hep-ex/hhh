@@ -49,6 +49,7 @@ def main(out_file, train_frac):
     jet_id = get_n_features("jet{i}JetId", events, N_JETS)
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, N_JETS)
+    matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, N_JETS)
 
     # large-radius jet info
     fj_pt = get_n_features("fatJet{i}Pt", events, N_FJETS)
@@ -73,6 +74,8 @@ def main(out_file, train_frac):
     jet_id = jet_id[mask]
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
+    matched_fj_idx = matched_fj_idx[mask]
+
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
     fj_phi = fj_phi[mask]
@@ -150,13 +153,18 @@ def main(out_file, train_frac):
         output.create_dataset("source/pt", data=pt.to_numpy())
         output.create_dataset("source/eta", data=eta.to_numpy())
         output.create_dataset("source/phi", data=phi.to_numpy())
+        output.create_dataset("source/sinphi", data=np.sin(phi.to_numpy()))
+        output.create_dataset("source/cosphi", data=np.cos(phi.to_numpy()))
         output.create_dataset("source/btag", data=btag.to_numpy())
         output.create_dataset("source/jetid", data=jet_id.to_numpy())
+        output.create_dataset("source/matchedfj", data=matched_fj_idx.to_numpy())
 
         output.create_dataset("source_fj/mask", data=fj_mask.to_numpy())
         output.create_dataset("source_fj/pt", data=fj_pt.to_numpy())
         output.create_dataset("source_fj/eta", data=fj_eta.to_numpy())
         output.create_dataset("source_fj/phi", data=fj_phi.to_numpy())
+        output.create_dataset("source_fj/sinphi", data=np.sin(fj_phi.to_numpy()))
+        output.create_dataset("source_fj/cosphi", data=np.cos(fj_phi.to_numpy()))
         output.create_dataset("source_fj/mass", data=fj_mass.to_numpy())
         output.create_dataset("source_fj/sdmass", data=fj_sdmass.to_numpy())
         output.create_dataset("source_fj/regmass", data=fj_regmass.to_numpy())

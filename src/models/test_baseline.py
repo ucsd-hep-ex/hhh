@@ -33,7 +33,6 @@ def main(test_file, event_file):
     eta = ak.Array(in_file["source"]["eta"])
     phi = ak.Array(in_file["source"]["phi"])
     btag = ak.Array(in_file["source"]["btag"])
-    jet_id = ak.Array(in_file["source"]["jetid"])
     mask = ak.Array(in_file["source"]["mask"])
 
     # remove zero-padded jets
@@ -41,7 +40,6 @@ def main(test_file, event_file):
     eta = eta[mask]
     phi = phi[mask]
     btag = btag[mask]
-    jet_id = jet_id[mask]
 
     jets = ak.zip(
         {
@@ -50,7 +48,6 @@ def main(test_file, event_file):
             "phi": phi,
             "mass": ak.zeros_like(pt),
             "btag": btag,
-            "jet_id": jet_id,
         },
         with_name="Momentum4D",
     )
@@ -84,7 +81,7 @@ def main(test_file, event_file):
     )
     targets = [h1_bs, h2_bs, h3_bs]
 
-    # compute max ("perfect") efficiciency given truth definition
+    # compute max ("perfect") efficiency given truth definition
     masks = np.concatenate(
         (
             np.array(in_file["h1"]["mask"])[np.newaxis, :],
