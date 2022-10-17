@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ttbar-job-test
+  labels:
+    jobgroup: ttbar-job-test
+spec:
+  template:
+    spec:
+      containers:
+      - name: training
+        image: gitlab-registry.nrp-nautilus.io/jmduarte/hhh:latest
+        command:
+        - "python"
+        args:
+        - "/opt/repo/hhh/SPANet/test.py"
+        - "/hhh-vol/logs/spanet_output/version_8"
+        - -tf
+        - "/hhh-vol/data/ttbar/ttbar_testing.h5"
+        volumeMounts:
+        - mountPath: /hhh-vol
+          name: hhh-vol
+        - name: git-repo
+          mountPath: /opt/repo
+        resources:
+          limits:
+            memory: 64Gi
+            cpu: "8"
+            nvidia.com/gpu: "1"
+          requests:
+            memory: 32Gi
+            cpu: "4"
+            nvidia.com/gpu: "1"
+      initContainers:
+      - name: init-clone-repo
+        image: alpine/git
+        args:
+          - clone
+          - --single-branch
+          - https://github.com/ucsd-hep-ex/hhh
+          - -b
+          - spanet
+          - --recurse-submodules
+          - /opt/repo/hhh
+        volumeMounts:
+          - name: git-repo
+            mountPath: /opt/repo
+      volumes:
+      - name: git-repo
+        emptyDir: {}
+      - name: hhh-vol
+        persistentVolumeClaim:
+          claimName: hhh-vol
+      restartPolicy: Never
+  backoffLimit: 5

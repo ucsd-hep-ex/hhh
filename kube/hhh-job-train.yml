@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: hhh-job
+  name: hhh-job-train
   labels:
-    jobgroup: hhh-job
+    jobgroup: hhh-job-train
 spec:
   template:
     spec:
