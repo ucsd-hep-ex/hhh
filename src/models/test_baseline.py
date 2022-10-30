@@ -25,15 +25,15 @@ for nj in range(MIN_JETS, N_JETS + 1):
 
 @click.command()
 @click.option("--test-file", default="data/hhh_testing.h5", help="File for testing")
-@click.option("--event-file", default="event_files/hhh.ini", help="Event file")
+@click.option("--event-file", default="event_files/hhh.yaml", help="Event file")
 def main(test_file, event_file):
     in_file = h5py.File(test_file)
 
-    pt = ak.Array(in_file["source"]["pt"])
-    eta = ak.Array(in_file["source"]["eta"])
-    phi = ak.Array(in_file["source"]["phi"])
-    btag = ak.Array(in_file["source"]["btag"])
-    mask = ak.Array(in_file["source"]["mask"])
+    pt = ak.Array(in_file["INPUTS"]["Source"]["pt"])
+    eta = ak.Array(in_file["INPUTS"]["Source"]["eta"])
+    phi = ak.Array(in_file["INPUTS"]["Source"]["phi"])
+    btag = ak.Array(in_file["INPUTS"]["Source"]["btag"])
+    mask = ak.Array(in_file["INPUTS"]["Source"]["MASK"])
 
     # remove zero-padded jets
     pt = pt[mask]
@@ -60,33 +60,32 @@ def main(test_file, event_file):
 
     h1_bs = np.concatenate(
         (
-            np.array(in_file["h1"]["b1"])[:, np.newaxis],
-            np.array(in_file["h1"]["b2"])[:, np.newaxis],
+            np.array(in_file["TARGETS"]["h1"]["b1"])[:, np.newaxis],
+            np.array(in_file["TARGETS"]["h1"]["b2"])[:, np.newaxis],
         ),
         axis=-1,
     )
     h2_bs = np.concatenate(
         (
-            np.array(in_file["h2"]["b1"])[:, np.newaxis],
-            np.array(in_file["h2"]["b2"])[:, np.newaxis],
+            np.array(in_file["TARGETS"]["h2"]["b1"])[:, np.newaxis],
+            np.array(in_file["TARGETS"]["h2"]["b2"])[:, np.newaxis],
         ),
         axis=-1,
     )
     h3_bs = np.concatenate(
         (
-            np.array(in_file["h3"]["b1"])[:, np.newaxis],
-            np.array(in_file["h3"]["b2"])[:, np.newaxis],
+            np.array(in_file["TARGETS"]["h3"]["b1"])[:, np.newaxis],
+            np.array(in_file["TARGETS"]["h3"]["b2"])[:, np.newaxis],
         ),
         axis=-1,
     )
     targets = [h1_bs, h2_bs, h3_bs]
 
-    # compute max ("perfect") efficiency given truth definition
     masks = np.concatenate(
         (
-            np.array(in_file["h1"]["mask"])[np.newaxis, :],
-            np.array(in_file["h2"]["mask"])[np.newaxis, :],
-            np.array(in_file["h3"]["mask"])[np.newaxis, :],
+            np.array(in_file["TARGETS"]["h1"]["mask"])[np.newaxis, :],
+            np.array(in_file["TARGETS"]["h2"]["mask"])[np.newaxis, :],
+            np.array(in_file["TARGETS"]["h3"]["mask"])[np.newaxis, :],
         ),
         axis=0,
     )
@@ -96,10 +95,11 @@ def main(test_file, event_file):
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 2, :],
     ]
-    num_jets = np.sum(mask, axis=-1).to_numpy()
 
-    results, jet_limits = evaluate_predictions(predictions, targets, masks, num_jets, event_file)
-    display_table(results, jet_limits)
+    num_vectors = np.sum(mask, axis=-1).to_numpy()
+    lines = 2
+    results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
+    display_table(results, jet_limits, clusters)
 
 
 if __name__ == "__main__":
