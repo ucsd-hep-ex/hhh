@@ -30,7 +30,7 @@
     "skip_connections": true,
     "initial_embedding_skip_connections": true,
     "event_info_file": "event_files/hhh.yaml",
-    "training_file": "data/hhh_training.h5",
+    "training_file": "data/cms/v12/hhh_training.h5",
 
     "normalize_features": true,
     "limit_to_num_jets": 0,

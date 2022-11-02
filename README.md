@@ -30,8 +30,8 @@ wget <URL> -O data/GluGluToHHHTo6B_SM.root
 
 Convert to training and testing HDF5 files.
 ```bash
-python src/data/convert_to_h5.py --out-file hhh_training.h5
-python src/data/convert_to_h5.py --out-file hhh_testing.h5
+python src/data/convert_to_h5.py data/GluGluToHHHTo6B_SM.root --out-file data/hhh_training.h5
+python src/data/convert_to_h5.py data/GluGluToHHHTo6B_SM.root --out-file data/hhh_testing.h5
 ```
 
 ## 5. Run the SPANet training
@@ -49,5 +49,5 @@ python SPANet/spanet/test.py spanet_output/version_0 -tf data/hhh_testing.h5 [--
 
 ## 7. Evaluate the baseline method
 ```bash
-python src/models/test_baseline.py
+python src/models/test_baseline.py --test-file data/hhh_testing.h5
 ```

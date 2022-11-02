@@ -1,5 +1,6 @@
 import itertools
 import logging
+from pathlib import Path
 
 import awkward as ak
 import click
@@ -15,6 +16,7 @@ vector.register_awkward()
 logging.basicConfig(level=logging.INFO)
 
 HIGGS_MASS = 125.0
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 # precompute possible jet assignments lookup table
 JET_ASSIGNMENTS = {}
 for nj in range(MIN_JETS, N_JETS + 1):
@@ -24,8 +26,8 @@ for nj in range(MIN_JETS, N_JETS + 1):
 
 
 @click.command()
-@click.option("--test-file", default="data/hhh_testing.h5", help="File for testing")
-@click.option("--event-file", default="event_files/hhh.yaml", help="Event file")
+@click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
+@click.option("--event-file", default=f"{PROJECT_DIR}/event_files/hhh.yaml", help="Event file")
 def main(test_file, event_file):
     in_file = h5py.File(test_file)
 
