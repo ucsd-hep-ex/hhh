@@ -15,11 +15,11 @@ spec:
           args:
             - "/opt/repo/hhh/SPANet/train.py"
             - -of
-            - "/hhh-vol/options_files/hhh.json"
+            - "/hhh-vol/options_files/hhh_v12.json"
             - -l
             - "/hhh-vol/logs/"
             - --epochs
-            - "500"
+            - "2000"
           volumeMounts:
             - mountPath: /hhh-vol
               name: hhh-vol
@@ -42,7 +42,7 @@ spec:
             - --single-branch
             - https://github.com/ucsd-hep-ex/hhh
             - -b
-            - spanet
+            - main
             - --recurse-submodules
             - /opt/repo/hhh
           volumeMounts:

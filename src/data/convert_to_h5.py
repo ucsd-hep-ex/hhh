@@ -1,5 +1,5 @@
 import logging
-import os.path as osp
+from pathlib import Path
 
 import awkward as ak
 import click
@@ -18,28 +18,14 @@ N_FJETS = 3
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
 MIN_JETS = 6
-RAW_FILE_NAME = "GluGluToHHHTo6B_SM.root"
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 def get_n_features(name, events, n):
     return ak.concatenate([np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, n + 1)], axis=-1)
 
 
-@click.command()
-@click.option("--out-file", default="hhh_training.h5", help="Output file.")
-@click.option("--train-frac", default=0.95, help="Fraction for training.")
-def main(out_file, train_frac):
-    in_file = uproot.open(osp.join("data", RAW_FILE_NAME))
-    num_entries = in_file["Events"].num_entries
-    if "training" in out_file:
-        entry_start = None
-        entry_stop = int(train_frac * num_entries)
-    else:
-        entry_start = int(train_frac * num_entries)
-        entry_stop = None
-    events = NanoEventsFactory.from_root(
-        in_file, treepath="Events", entry_start=entry_start, entry_stop=entry_stop, schemaclass=BaseSchema
-    ).events()
+def get_datasets(events):
 
     # small-radius jet info
     pt = get_n_features("jet{i}Pt", events, N_JETS)
@@ -148,49 +134,82 @@ def main(out_file, train_frac):
     h2_fj_mask = ak.all(h2_bb != -1, axis=-1)
     h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
 
-    with h5py.File(osp.join("data", out_file), "w") as output:
-        output.create_dataset("INPUTS/Source/MASK", data=mask.to_numpy())
-        output.create_dataset("INPUTS/Source/pt", data=pt.to_numpy())
-        output.create_dataset("INPUTS/Source/eta", data=eta.to_numpy())
-        output.create_dataset("INPUTS/Source/phi", data=phi.to_numpy())
-        output.create_dataset("INPUTS/Source/sinphi", data=np.sin(phi.to_numpy()))
-        output.create_dataset("INPUTS/Source/cosphi", data=np.cos(phi.to_numpy()))
-        output.create_dataset("INPUTS/Source/btag", data=btag.to_numpy())
-        output.create_dataset("INPUTS/Source/jetid", data=jet_id.to_numpy())
-        output.create_dataset("INPUTS/Source/matchedfj", data=matched_fj_idx.to_numpy())
+    datasets = {}
+    datasets["INPUTS/Source/MASK"] = mask.to_numpy()
+    datasets["INPUTS/Source/pt"] = pt.to_numpy()
+    datasets["INPUTS/Source/eta"] = eta.to_numpy()
+    datasets["INPUTS/Source/phi"] = phi.to_numpy()
+    datasets["INPUTS/Source/sinphi"] = np.sin(phi.to_numpy())
+    datasets["INPUTS/Source/cosphi"] = np.cos(phi.to_numpy())
+    datasets["INPUTS/Source/btag"] = btag.to_numpy()
+    datasets["INPUTS/Source/jetid"] = jet_id.to_numpy()
+    datasets["INPUTS/Source/matchedfj"] = matched_fj_idx.to_numpy()
 
-        output.create_dataset("TARGETS/source_fj/MASK", data=fj_mask.to_numpy())
-        output.create_dataset("TARGETS/source_fj/pt", data=fj_pt.to_numpy())
-        output.create_dataset("TARGETS/source_fj/eta", data=fj_eta.to_numpy())
-        output.create_dataset("TARGETS/source_fj/phi", data=fj_phi.to_numpy())
-        output.create_dataset("TARGETS/source_fj/sinphi", data=np.sin(fj_phi.to_numpy()))
-        output.create_dataset("TARGETS/source_fj/cosphi", data=np.cos(fj_phi.to_numpy()))
-        output.create_dataset("TARGETS/source_fj/mass", data=fj_mass.to_numpy())
-        output.create_dataset("TARGETS/source_fj/sdmass", data=fj_sdmass.to_numpy())
-        output.create_dataset("TARGETS/source_fj/regmass", data=fj_regmass.to_numpy())
-        output.create_dataset("TARGETS/source_fj/nsub", data=fj_nsub.to_numpy())
-        output.create_dataset("TARGETS/source_fj/tau32", data=fj_tau32.to_numpy())
-        output.create_dataset("TARGETS/source_fj/xbb", data=fj_xbb.to_numpy())
-        output.create_dataset("TARGETS/source_fj/xqq", data=fj_xqq.to_numpy())
-        output.create_dataset("TARGETS/source_fj/qcd", data=fj_qcd.to_numpy())
+    datasets["TARGETS/source_fj/MASK"] = fj_mask.to_numpy()
+    datasets["TARGETS/source_fj/pt"] = fj_pt.to_numpy()
+    datasets["TARGETS/source_fj/eta"] = fj_eta.to_numpy()
+    datasets["TARGETS/source_fj/phi"] = fj_phi.to_numpy()
+    datasets["TARGETS/source_fj/sinphi"] = np.sin(fj_phi.to_numpy())
+    datasets["TARGETS/source_fj/cosphi"] = np.cos(fj_phi.to_numpy())
+    datasets["TARGETS/source_fj/mass"] = fj_mass.to_numpy()
+    datasets["TARGETS/source_fj/sdmass"] = fj_sdmass.to_numpy()
+    datasets["TARGETS/source_fj/regmass"] = fj_regmass.to_numpy()
+    datasets["TARGETS/source_fj/nsub"] = fj_nsub.to_numpy()
+    datasets["TARGETS/source_fj/tau32"] = fj_tau32.to_numpy()
+    datasets["TARGETS/source_fj/xbb"] = fj_xbb.to_numpy()
+    datasets["TARGETS/source_fj/xqq"] = fj_xqq.to_numpy()
+    datasets["TARGETS/source_fj/qcd"] = fj_qcd.to_numpy()
 
-        output.create_dataset("TARGETS/h1/mask", data=h1_mask.to_numpy())
-        output.create_dataset("TARGETS/h1/fj_mask", data=h1_fj_mask.to_numpy())
-        output.create_dataset("TARGETS/h1/b1", data=h1_b1.to_numpy())
-        output.create_dataset("TARGETS/h1/b2", data=h1_b2.to_numpy())
-        output.create_dataset("TARGETS/h1/bb", data=h1_bb.to_numpy())
+    datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
+    datasets["TARGETS/h1/fj_mask"] = h1_fj_mask.to_numpy()
+    datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
+    datasets["TARGETS/h1/b2"] = h1_b2.to_numpy()
+    datasets["TARGETS/h1/bb"] = h1_bb.to_numpy()
 
-        output.create_dataset("TARGETS/h2/mask", data=h2_mask.to_numpy())
-        output.create_dataset("TARGETS/h2/fj_mask", data=h2_fj_mask.to_numpy())
-        output.create_dataset("TARGETS/h2/b1", data=h2_b1.to_numpy())
-        output.create_dataset("TARGETS/h2/b2", data=h2_b2.to_numpy())
-        output.create_dataset("TARGETS/h2/bb", data=h2_bb.to_numpy())
+    datasets["TARGETS/h2/mask"] = h2_mask.to_numpy()
+    datasets["TARGETS/h2/fj_mask"] = h2_fj_mask.to_numpy()
+    datasets["TARGETS/h2/b1"] = h2_b1.to_numpy()
+    datasets["TARGETS/h2/b2"] = h2_b2.to_numpy()
+    datasets["TARGETS/h2/bb"] = h2_bb.to_numpy()
 
-        output.create_dataset("TARGETS/h3/mask", data=h3_mask.to_numpy())
-        output.create_dataset("TARGETS/h3/fj_mask", data=h3_fj_mask.to_numpy())
-        output.create_dataset("TARGETS/h3/b1", data=h3_b1.to_numpy())
-        output.create_dataset("TARGETS/h3/b2", data=h3_b2.to_numpy())
-        output.create_dataset("TARGETS/h3/bb", data=h3_bb.to_numpy())
+    datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
+    datasets["TARGETS/h3/fj_mask"] = h3_fj_mask.to_numpy()
+    datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
+    datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
+    datasets["TARGETS/h3/bb"] = h3_bb.to_numpy()
+
+    return datasets
+
+
+@click.command()
+@click.argument("in-files", nargs=-1)
+@click.option("--out-file", default=f"{PROJECT_DIR}/data/hhh_training.h5", help="Output file.")
+@click.option("--train-frac", default=0.95, help="Fraction for training.")
+def main(in_files, out_file, train_frac):
+    all_datasets = {}
+    for file_name in in_files:
+        with uproot.open(file_name) as in_file:
+            num_entries = in_file["Events"].num_entries
+            if "training" in out_file:
+                entry_start = None
+                entry_stop = int(train_frac * num_entries)
+            else:
+                entry_start = int(train_frac * num_entries)
+                entry_stop = None
+            events = NanoEventsFactory.from_root(
+                in_file, treepath="Events", entry_start=entry_start, entry_stop=entry_stop, schemaclass=BaseSchema
+            ).events()
+
+            datasets = get_datasets(events)
+            for dataset_name, data in datasets.items():
+                if dataset_name not in all_datasets:
+                    all_datasets[dataset_name] = []
+                all_datasets[dataset_name].append(data)
+
+    with h5py.File(out_file, "w") as output:
+        for dataset_name, all_data in all_datasets.items():
+            concat_data = np.concatenate(all_data, axis=0)
+            output.create_dataset(dataset_name, data=concat_data)
 
 
 if __name__ == "__main__":
