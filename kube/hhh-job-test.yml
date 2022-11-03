@@ -8,15 +8,16 @@ spec:
   template:
     spec:
       containers:
-      - name: training
+      - name: testing
         image: gitlab-registry.nrp-nautilus.io/jmduarte/hhh:latest
         command:
         - "python"
         args:
-        - "/opt/repo/hhh/SPANet/test.py"
-        - "/hhh-vol/logs/spanet_output/version_9"
+        - "-m"
+        - "spanet.test"
+        - "/hhh-vol/logs/spanet_output/version_2"
         - -tf
-        - "/hhh-vol/data/hhh_testing.h5"
+        - "/hhh-vol/data/cms/v12/hhh_testing.h5"
         volumeMounts:
         - mountPath: /hhh-vol
           name: hhh-vol

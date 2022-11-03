@@ -13,7 +13,8 @@ spec:
           command:
             - "python"
           args:
-            - "/opt/repo/hhh/SPANet/train.py"
+            - "-m"
+            - "spanet.train"
             - -of
             - "/hhh-vol/options_files/hhh_v12.json"
             - -l
