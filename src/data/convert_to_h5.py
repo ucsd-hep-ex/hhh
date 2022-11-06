@@ -22,7 +22,10 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 def get_n_features(name, events, n):
-    return ak.concatenate([np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, n + 1)], axis=-1)
+    return ak.concatenate(
+        [np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, n + 1)],
+        axis=-1,
+    )
 
 
 def get_datasets(events):
@@ -145,38 +148,38 @@ def get_datasets(events):
     datasets["INPUTS/Source/jetid"] = jet_id.to_numpy()
     datasets["INPUTS/Source/matchedfj"] = matched_fj_idx.to_numpy()
 
-    datasets["TARGETS/source_fj/MASK"] = fj_mask.to_numpy()
-    datasets["TARGETS/source_fj/pt"] = fj_pt.to_numpy()
-    datasets["TARGETS/source_fj/eta"] = fj_eta.to_numpy()
-    datasets["TARGETS/source_fj/phi"] = fj_phi.to_numpy()
-    datasets["TARGETS/source_fj/sinphi"] = np.sin(fj_phi.to_numpy())
-    datasets["TARGETS/source_fj/cosphi"] = np.cos(fj_phi.to_numpy())
-    datasets["TARGETS/source_fj/mass"] = fj_mass.to_numpy()
-    datasets["TARGETS/source_fj/sdmass"] = fj_sdmass.to_numpy()
-    datasets["TARGETS/source_fj/regmass"] = fj_regmass.to_numpy()
-    datasets["TARGETS/source_fj/nsub"] = fj_nsub.to_numpy()
-    datasets["TARGETS/source_fj/tau32"] = fj_tau32.to_numpy()
-    datasets["TARGETS/source_fj/xbb"] = fj_xbb.to_numpy()
-    datasets["TARGETS/source_fj/xqq"] = fj_xqq.to_numpy()
-    datasets["TARGETS/source_fj/qcd"] = fj_qcd.to_numpy()
+    datasets["INPUTS/Source_fj/MASK"] = fj_mask.to_numpy()
+    datasets["INPUTS/Source_fj/pt"] = fj_pt.to_numpy()
+    datasets["INPUTS/Source_fj/eta"] = fj_eta.to_numpy()
+    datasets["INPUTS/Source_fj/phi"] = fj_phi.to_numpy()
+    datasets["INPUTS/Source_fj/sinphi"] = np.sin(fj_phi.to_numpy())
+    datasets["INPUTS/Source_fj/cosphi"] = np.cos(fj_phi.to_numpy())
+    datasets["INPUTS/Source_fj/mass"] = fj_mass.to_numpy()
+    datasets["INPUTS/Source_fj/sdmass"] = fj_sdmass.to_numpy()
+    datasets["INPUTS/Source_fj/regmass"] = fj_regmass.to_numpy()
+    datasets["INPUTS/Source_fj/nsub"] = fj_nsub.to_numpy()
+    datasets["INPUTS/Source_fj/tau32"] = fj_tau32.to_numpy()
+    datasets["INPUTS/Source_fj/xbb"] = fj_xbb.to_numpy()
+    datasets["INPUTS/Source_fj/xqq"] = fj_xqq.to_numpy()
+    datasets["INPUTS/Source_fj/qcd"] = fj_qcd.to_numpy()
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
-    datasets["TARGETS/h1/fj_mask"] = h1_fj_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
     datasets["TARGETS/h1/b2"] = h1_b2.to_numpy()
-    datasets["TARGETS/h1/bb"] = h1_bb.to_numpy()
+    datasets["TARGETS/h1_fj/mask"] = h1_fj_mask.to_numpy()
+    datasets["TARGETS/h1_fj/bb"] = h1_bb.to_numpy() + N_JETS  # offset if using both sources
 
     datasets["TARGETS/h2/mask"] = h2_mask.to_numpy()
-    datasets["TARGETS/h2/fj_mask"] = h2_fj_mask.to_numpy()
     datasets["TARGETS/h2/b1"] = h2_b1.to_numpy()
     datasets["TARGETS/h2/b2"] = h2_b2.to_numpy()
-    datasets["TARGETS/h2/bb"] = h2_bb.to_numpy()
+    datasets["TARGETS/h2_fj/mask"] = h2_fj_mask.to_numpy()
+    datasets["TARGETS/h2_fj/bb"] = h2_bb.to_numpy() + N_JETS  # offset if using both sources
 
     datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
-    datasets["TARGETS/h3/fj_mask"] = h3_fj_mask.to_numpy()
     datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
     datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
-    datasets["TARGETS/h3/bb"] = h3_bb.to_numpy()
+    datasets["TARGETS/h3_fj/mask"] = h3_fj_mask.to_numpy()
+    datasets["TARGETS/h3_fj/bb"] = h3_bb.to_numpy() + N_JETS  # offset if using both sources
 
     return datasets
 
@@ -197,7 +200,11 @@ def main(in_files, out_file, train_frac):
                 entry_start = int(train_frac * num_entries)
                 entry_stop = None
             events = NanoEventsFactory.from_root(
-                in_file, treepath="Events", entry_start=entry_start, entry_stop=entry_stop, schemaclass=BaseSchema
+                in_file,
+                treepath="Events",
+                entry_start=entry_start,
+                entry_stop=entry_stop,
+                schemaclass=BaseSchema,
             ).events()
 
             datasets = get_datasets(events)
