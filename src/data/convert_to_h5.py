@@ -138,48 +138,51 @@ def get_datasets(events):
     h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
 
     datasets = {}
-    datasets["INPUTS/Source/MASK"] = mask.to_numpy()
-    datasets["INPUTS/Source/pt"] = pt.to_numpy()
-    datasets["INPUTS/Source/eta"] = eta.to_numpy()
-    datasets["INPUTS/Source/phi"] = phi.to_numpy()
-    datasets["INPUTS/Source/sinphi"] = np.sin(phi.to_numpy())
-    datasets["INPUTS/Source/cosphi"] = np.cos(phi.to_numpy())
-    datasets["INPUTS/Source/btag"] = btag.to_numpy()
-    datasets["INPUTS/Source/jetid"] = jet_id.to_numpy()
-    datasets["INPUTS/Source/matchedfj"] = matched_fj_idx.to_numpy()
+    datasets["INPUTS/Jets/MASK"] = mask.to_numpy()
+    datasets["INPUTS/Jets/pt"] = pt.to_numpy()
+    datasets["INPUTS/Jets/eta"] = eta.to_numpy()
+    datasets["INPUTS/Jets/phi"] = phi.to_numpy()
+    datasets["INPUTS/Jets/sinphi"] = np.sin(phi.to_numpy())
+    datasets["INPUTS/Jets/cosphi"] = np.cos(phi.to_numpy())
+    datasets["INPUTS/Jets/btag"] = btag.to_numpy()
+    datasets["INPUTS/Jets/jetid"] = jet_id.to_numpy()
+    datasets["INPUTS/Jets/matchedfj"] = matched_fj_idx.to_numpy()
 
-    datasets["INPUTS/Source_fj/MASK"] = fj_mask.to_numpy()
-    datasets["INPUTS/Source_fj/pt"] = fj_pt.to_numpy()
-    datasets["INPUTS/Source_fj/eta"] = fj_eta.to_numpy()
-    datasets["INPUTS/Source_fj/phi"] = fj_phi.to_numpy()
-    datasets["INPUTS/Source_fj/sinphi"] = np.sin(fj_phi.to_numpy())
-    datasets["INPUTS/Source_fj/cosphi"] = np.cos(fj_phi.to_numpy())
-    datasets["INPUTS/Source_fj/mass"] = fj_mass.to_numpy()
-    datasets["INPUTS/Source_fj/sdmass"] = fj_sdmass.to_numpy()
-    datasets["INPUTS/Source_fj/regmass"] = fj_regmass.to_numpy()
-    datasets["INPUTS/Source_fj/nsub"] = fj_nsub.to_numpy()
-    datasets["INPUTS/Source_fj/tau32"] = fj_tau32.to_numpy()
-    datasets["INPUTS/Source_fj/xbb"] = fj_xbb.to_numpy()
-    datasets["INPUTS/Source_fj/xqq"] = fj_xqq.to_numpy()
-    datasets["INPUTS/Source_fj/qcd"] = fj_qcd.to_numpy()
+    datasets["INPUTS/BoostedJets/MASK"] = fj_mask.to_numpy()
+    datasets["INPUTS/BoostedJets/pt"] = fj_pt.to_numpy()
+    datasets["INPUTS/BoostedJets/eta"] = fj_eta.to_numpy()
+    datasets["INPUTS/BoostedJets/phi"] = fj_phi.to_numpy()
+    datasets["INPUTS/BoostedJets/sinphi"] = np.sin(fj_phi.to_numpy())
+    datasets["INPUTS/BoostedJets/cosphi"] = np.cos(fj_phi.to_numpy())
+    datasets["INPUTS/BoostedJets/mass"] = fj_mass.to_numpy()
+    datasets["INPUTS/BoostedJets/sdmass"] = fj_sdmass.to_numpy()
+    datasets["INPUTS/BoostedJets/regmass"] = fj_regmass.to_numpy()
+    datasets["INPUTS/BoostedJets/nsub"] = fj_nsub.to_numpy()
+    datasets["INPUTS/BoostedJets/tau32"] = fj_tau32.to_numpy()
+    datasets["INPUTS/BoostedJets/xbb"] = fj_xbb.to_numpy()
+    datasets["INPUTS/BoostedJets/xqq"] = fj_xqq.to_numpy()
+    datasets["INPUTS/BoostedJets/qcd"] = fj_qcd.to_numpy()
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
     datasets["TARGETS/h1/b2"] = h1_b2.to_numpy()
-    datasets["TARGETS/h1_fj/mask"] = h1_fj_mask.to_numpy()
-    datasets["TARGETS/h1_fj/bb"] = h1_bb.to_numpy() + N_JETS  # offset if using both sources
 
     datasets["TARGETS/h2/mask"] = h2_mask.to_numpy()
     datasets["TARGETS/h2/b1"] = h2_b1.to_numpy()
     datasets["TARGETS/h2/b2"] = h2_b2.to_numpy()
-    datasets["TARGETS/h2_fj/mask"] = h2_fj_mask.to_numpy()
-    datasets["TARGETS/h2_fj/bb"] = h2_bb.to_numpy() + N_JETS  # offset if using both sources
 
     datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
     datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
     datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
-    datasets["TARGETS/h3_fj/mask"] = h3_fj_mask.to_numpy()
-    datasets["TARGETS/h3_fj/bb"] = h3_bb.to_numpy() + N_JETS  # offset if using both sources
+
+    datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
+    datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy()
+
+    datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
+    datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy()
+
+    datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
+    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy()
 
     return datasets
 

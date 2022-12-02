@@ -6,7 +6,7 @@ INPUTS:
   # REQUIRED - SEQUENTIAL - inputs which can have an arbitrary number of vectors.
   # -----------------------------------------------------------------------------
   SEQUENTIAL:
-    Source:
+    Jets:
       pt: log_normalize
       eta: normalize
       sinphi: none
@@ -23,14 +23,14 @@ INPUTS:
 # ----------------------------------------------------------------------
 EVENT:
   h1:
-    - b1
-    - b2
+    - b1: Jets
+    - b2: Jets
   h2:
-    - b1
-    - b2
+    - b1: Jets
+    - b2: Jets
   h3:
-    - b1
-    - b2
+    - b1: Jets
+    - b2: Jets
 
 # ---------------------------------------------------------
 # REQUIRED KEY - PERMUTATIONS - List of valid permutations.
