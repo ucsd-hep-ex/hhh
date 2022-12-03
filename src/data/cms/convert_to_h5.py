@@ -18,7 +18,7 @@ N_FJETS = 3
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
 MIN_JETS = 6
-PROJECT_DIR = Path(__file__).resolve().parents[2]
+PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
 def get_n_features(name, events, n):

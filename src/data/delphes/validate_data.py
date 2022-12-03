@@ -10,6 +10,9 @@ import numpy as np
 import uproot
 import vector
 from coffea.hist.plot import clopper_pearson_interval
+from coffea.nanoevents import DelphesSchema, NanoEventsFactory
+
+DelphesSchema.mixins.update({"FatJet": "Jet"})
 
 hep.style.use(hep.style.ROOT)
 vector.register_awkward()
@@ -18,7 +21,7 @@ ak.numba.register()
 
 logging.basicConfig(level=logging.INFO)
 
-PROJECT_DIR = Path(__file__).resolve().parents[2]
+PROJECT_DIR = Path(__file__).resolve().parents[3]
 JET_DR = 0.5  # https://github.com/delphes/delphes/blob/master/cards/delphes_card_CMS.tcl#L642
 FJET_DR = 0.8  # https://github.com/delphes/delphes/blob/master/cards/delphes_card_CMS.tcl#L658
 
@@ -27,10 +30,10 @@ FJET_DR = 0.8  # https://github.com/delphes/delphes/blob/master/cards/delphes_ca
 def match_fjet(higgses, bquarks, fjets, builder):
     for higgses_event, bquarks_event, fjets_event in zip(higgses, bquarks, fjets):
         builder.begin_list()
-        for higgs, higgs_idx in zip(higgses_event, higgses_event.idx):
+        for higgs_idx, higgs in enumerate(higgses_event):
             match_idx = -1
             bdaughters = []
-            for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.m1):
+            for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.M1):
                 if bquark_m1 == higgs_idx:
                     bdaughters.append(bquark)
             for i, fjet in enumerate(fjets_event):
@@ -48,11 +51,11 @@ def match_fjet(higgses, bquarks, fjets, builder):
 def match_jets(higgses, bquarks, jets, builder):
     for higgses_event, bquarks_event, jets_event in zip(higgses, bquarks, jets):
         builder.begin_list()
-        for higgs, higgs_idx in zip(higgses_event, higgses_event.idx):
+        for higgs_idx, higgs in enumerate(higgses_event):
             match_idx_b0 = -1
             match_idx_b1 = -1
             bdaughters = []
-            for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.m1):
+            for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.M1):
                 if bquark_m1 == higgs_idx:
                     bdaughters.append(bquark)
             for i, jet in enumerate(jets_event):
@@ -73,71 +76,48 @@ def match_jets(higgses, bquarks, jets, builder):
 
 def main():
     # SM HHH
-    with uproot.open("data/delphes/GF_HHH_SM_c3_0_d4_0_14TeV.root") as in_file:
+    with uproot.open("data/delphes/v1/GF_HHH_SM_c3_0_d4_0_14TeV.root") as in_file:
 
         events = in_file["Delphes"]
-        arrays = events.arrays(
-            [
-                "Particle/Particle.PT",
-                "Particle/Particle.Eta",
-                "Particle/Particle.Phi",
-                "Particle/Particle.Mass",
-                "Particle/Particle.PID",
-                "Particle/Particle.M1",
-                "Jet/Jet.PT",
-                "Jet/Jet.Eta",
-                "Jet/Jet.Phi",
-                "Jet/Jet.Mass",
-                "FatJet/FatJet.PT",
-                "FatJet/FatJet.Eta",
-                "FatJet/FatJet.Phi",
-                "FatJet/FatJet.Mass",
-            ]
-        )
 
-        part_pid = arrays["Particle/Particle.PID"]  # PDG ID
+        events = NanoEventsFactory.from_root(
+            in_file,
+            treepath="Delphes",
+            schemaclass=DelphesSchema,
+        ).events()
+
+        part_pid = events.Particle.PID  # PDG ID
 
         # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
         # explicitly mask these out, just keeping hhh6b events
         mask_hhh6b = ak.count(part_pid[np.abs(part_pid) == 5], axis=-1) == 6
 
-        particles = ak.zip(
-            {
-                "pt": arrays["Particle/Particle.PT"],
-                "eta": arrays["Particle/Particle.Eta"],
-                "phi": arrays["Particle/Particle.Phi"],
-                "mass": arrays["Particle/Particle.Mass"],
-                "pid": part_pid,
-                "m1": arrays["Particle/Particle.M1"],
-                "idx": ak.local_index(part_pid),
-            },
-            with_name="Momentum4D",
-        )[mask_hhh6b]
+        particles = events.Particle[mask_hhh6b]
 
-        higgses = ak.to_regular(particles[np.abs(particles.pid) == 25], axis=1)
-        bquarks = ak.to_regular(particles[np.abs(particles.pid) == 5], axis=1)
+        higgses = ak.to_regular(particles[np.abs(particles.PID) == 25], axis=1)
+        bquarks = ak.to_regular(particles[np.abs(particles.PID) == 5], axis=1)
 
-        jets = ak.zip(
-            {
-                "pt": arrays["Jet/Jet.PT"],
-                "eta": arrays["Jet/Jet.Eta"],
-                "phi": arrays["Jet/Jet.Phi"],
-                "mass": arrays["Jet/Jet.Mass"],
-                "idx": ak.local_index(arrays["Jet/Jet.PT"]),
-            },
-            with_name="Momentum4D",
-        )[mask_hhh6b]
+        jets = events.Jet[mask_hhh6b]
+        fjets = events.FatJet[mask_hhh6b]
 
-        fjets = ak.zip(
-            {
-                "pt": arrays["FatJet/FatJet.PT"],
-                "eta": arrays["FatJet/FatJet.Eta"],
-                "phi": arrays["FatJet/FatJet.Phi"],
-                "mass": arrays["FatJet/FatJet.Mass"],
-                "idx": ak.local_index(arrays["FatJet/FatJet.PT"]),
-            },
-            with_name="Momentum4D",
-        )[mask_hhh6b]
+        def convert_to_vectors(mixins, add_fields=[]):
+
+            dictionary = {
+                "pt": mixins.PT,
+                "eta": mixins.Eta,
+                "phi": mixins.Phi,
+                "mass": mixins.Mass,
+            }
+
+            for add_field in add_fields:
+                dictionary.update({add_field: getattr(mixins, add_field)})
+
+            return ak.zip(dictionary, with_name="Momentum4D")
+
+        higgses = convert_to_vectors(higgses, add_fields=["M1"])
+        bquarks = convert_to_vectors(bquarks, add_fields=["M1"])
+        jets = convert_to_vectors(jets)
+        fjets = convert_to_vectors(fjets)
 
         fj_match = match_fjet(higgses, bquarks, fjets, ak.ArrayBuilder()).snapshot()
         fj_higgses = higgses[fj_match > -1]
