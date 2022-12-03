@@ -12,5 +12,6 @@ setup(
         "coffea",
         "spanet",
         "numpy",
+        "xxhash",
     ],
 )

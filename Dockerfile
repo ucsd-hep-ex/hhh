@@ -9,7 +9,8 @@ RUN sudo apt-get update \
     && sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
 RUN pip install -q \
-    git+https://github.com/jmduarte/coffea@numpy1.22 \
+    coffea \
+    xxhash \
     git+https://github.com/Alexanders101/SPANet@master \
     mplhep \
     jetnet \
