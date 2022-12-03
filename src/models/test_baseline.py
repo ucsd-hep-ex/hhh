@@ -31,11 +31,11 @@ for nj in range(MIN_JETS, N_JETS + 1):
 def main(test_file, event_file):
     in_file = h5py.File(test_file)
 
-    pt = ak.Array(in_file["INPUTS"]["Source"]["pt"])
-    eta = ak.Array(in_file["INPUTS"]["Source"]["eta"])
-    phi = ak.Array(in_file["INPUTS"]["Source"]["phi"])
-    btag = ak.Array(in_file["INPUTS"]["Source"]["btag"])
-    mask = ak.Array(in_file["INPUTS"]["Source"]["MASK"])
+    pt = ak.Array(in_file["INPUTS"]["Jets"]["pt"])
+    eta = ak.Array(in_file["INPUTS"]["Jets"]["eta"])
+    phi = ak.Array(in_file["INPUTS"]["Jets"]["phi"])
+    btag = ak.Array(in_file["INPUTS"]["Jets"]["btag"])
+    mask = ak.Array(in_file["INPUTS"]["Jets"]["MASK"])
 
     # remove zero-padded jets
     pt = pt[mask]
