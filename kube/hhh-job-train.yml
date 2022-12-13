@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: hhh-job-train
+  name: hhh-job-train-v12
   labels:
     jobgroup: hhh-job-train
 spec:
@@ -19,9 +19,13 @@ spec:
             - "/hhh-vol/options_files/hhh_v12.json"
             - -l
             - "/hhh-vol/logs/"
+            - -n
+            - "v12_output"
             - --epochs
             - "2000"
           volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
             - mountPath: /hhh-vol
               name: hhh-vol
             - name: git-repo
@@ -29,11 +33,11 @@ spec:
           resources:
             limits:
               memory: 64Gi
-              cpu: "8"
+              cpu: "16"
               nvidia.com/gpu: "1"
             requests:
               memory: 32Gi
-              cpu: "4"
+              cpu: "8"
               nvidia.com/gpu: "1"
       initContainers:
         - name: init-clone-repo
@@ -50,6 +54,10 @@ spec:
             - name: git-repo
               mountPath: /opt/repo
       volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi
         - name: git-repo
           emptyDir: {}
         - name: hhh-vol
