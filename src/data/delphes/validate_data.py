@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 import awkward as ak
+import click
 import hist
 import matplotlib.pyplot as plt
 import mplhep as hep
@@ -21,9 +22,11 @@ logging.basicConfig(level=logging.INFO)
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
-def main():
+@click.command()
+@click.argument("in-filename", nargs=1)
+def main(in_filename):
     # SM HHH
-    with uproot.open("data/delphes/v1/GF_HHH_SM_c3_0_d4_0_14TeV.root") as in_file:
+    with uproot.open(in_filename) as in_file:
 
         events = in_file["Delphes"]
         keys = (
@@ -124,6 +127,32 @@ def main():
         plt.tight_layout()
         fig.savefig("higgs_pt.png")
         fig.savefig("higgs_pt.pdf")
+
+        plt.figure()
+        n_jets = hist.Hist.new.Reg(8, -0.5, 7.5, name="AK5 Jets").Double()
+        n_jets.fill(ak.count(jets.pt, axis=-1))
+        hep.histplot(n_jets)
+        plt.ylabel("Events")
+        plt.xlabel("AK5 Jets")
+        plt.xlim(-0.5, 7.5)
+        plt.ylim(1, 1e5)
+        plt.semilogy()
+        plt.tight_layout()
+        plt.savefig("n_jets.png")
+        plt.savefig("n_jets.pdf")
+
+        plt.figure()
+        n_fjets = hist.Hist.new.Reg(5, -0.5, 4.5, name="AK8 Jets").Double()
+        n_fjets.fill(ak.count(fjets.pt, axis=-1))
+        hep.histplot(n_fjets)
+        plt.ylabel("Events")
+        plt.xlabel("AK8 Jets")
+        plt.xlim(-0.5, 4.5)
+        plt.ylim(1, 1e5)
+        plt.semilogy()
+        plt.tight_layout()
+        plt.savefig("n_fjets.png")
+        plt.savefig("n_fjets.pdf")
 
 
 if __name__ == "__main__":
