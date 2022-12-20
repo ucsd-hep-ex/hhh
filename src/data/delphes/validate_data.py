@@ -5,14 +5,11 @@ import awkward as ak
 import hist
 import matplotlib.pyplot as plt
 import mplhep as hep
-import numba as nb
 import numpy as np
 import uproot
 import vector
 from coffea.hist.plot import clopper_pearson_interval
-from coffea.nanoevents import DelphesSchema, NanoEventsFactory
-
-DelphesSchema.mixins.update({"FatJet": "Jet"})
+from matching import match_fjet_to_higgs, match_jets_to_higgs
 
 hep.style.use(hep.style.ROOT)
 vector.register_awkward()
@@ -21,57 +18,7 @@ ak.numba.register()
 
 logging.basicConfig(level=logging.INFO)
 
-PROJECT_DIR = Path(__file__).resolve().parents[3]
-JET_DR = 0.5  # https://github.com/delphes/delphes/blob/master/cards/delphes_card_CMS.tcl#L642
-FJET_DR = 0.8  # https://github.com/delphes/delphes/blob/master/cards/delphes_card_CMS.tcl#L658
-
-
-@nb.njit
-def match_fjet(higgses, bquarks, fjets, builder):
-    for higgses_event, bquarks_event, fjets_event in zip(higgses, bquarks, fjets):
-        builder.begin_list()
-        for higgs_idx, higgs in enumerate(higgses_event):
-            match_idx = -1
-            bdaughters = []
-            for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.M1):
-                if bquark_m1 == higgs_idx:
-                    bdaughters.append(bquark)
-            for i, fjet in enumerate(fjets_event):
-                dr_h = fjet.deltaR(higgs)
-                dr_b0 = fjet.deltaR(bdaughters[0])
-                dr_b1 = fjet.deltaR(bdaughters[1])
-                if dr_h < FJET_DR and dr_b0 < FJET_DR and dr_b1 < FJET_DR:
-                    match_idx = i
-            builder.append(match_idx)
-        builder.end_list()
-    return builder
-
-
-@nb.njit
-def match_jets(higgses, bquarks, jets, builder):
-    for higgses_event, bquarks_event, jets_event in zip(higgses, bquarks, jets):
-        builder.begin_list()
-        for higgs_idx, higgs in enumerate(higgses_event):
-            match_idx_b0 = -1
-            match_idx_b1 = -1
-            bdaughters = []
-            for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.M1):
-                if bquark_m1 == higgs_idx:
-                    bdaughters.append(bquark)
-            for i, jet in enumerate(jets_event):
-                dr_b0 = jet.deltaR(bdaughters[0])
-                dr_b1 = jet.deltaR(bdaughters[1])
-                if dr_b0 < JET_DR:
-                    match_idx_b0 = i
-                if dr_b1 < JET_DR:
-                    match_idx_b1 = i
-            builder.begin_list()
-            builder.append(match_idx_b0)
-            builder.append(match_idx_b1)
-            builder.end_list()
-        builder.end_list()
-
-    return builder
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 
 def main():
@@ -79,55 +26,63 @@ def main():
     with uproot.open("data/delphes/v1/GF_HHH_SM_c3_0_d4_0_14TeV.root") as in_file:
 
         events = in_file["Delphes"]
+        keys = (
+            [key for key in events.keys() if "Particle/Particle." in key and "fBits" not in key]
+            + [key for key in events.keys() if "Jet/Jet." in key]
+            + [key for key in events.keys() if "FatJet/FatJet." in key and "fBits" not in key]
+        )
+        arrays = events.arrays(keys)
 
-        events = NanoEventsFactory.from_root(
-            in_file,
-            treepath="Delphes",
-            schemaclass=DelphesSchema,
-        ).events()
-
-        part_pid = events.Particle.PID  # PDG ID
+        part_pid = arrays["Particle/Particle.PID"]  # PDG ID
 
         # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
         # explicitly mask these out, just keeping hhh6b events
         mask_hhh6b = ak.count(part_pid[np.abs(part_pid) == 5], axis=-1) == 6
 
-        particles = events.Particle[mask_hhh6b]
+        particles = ak.zip(
+            {
+                "pt": arrays["Particle/Particle.PT"],
+                "eta": arrays["Particle/Particle.Eta"],
+                "phi": arrays["Particle/Particle.Phi"],
+                "mass": arrays["Particle/Particle.Mass"],
+                "pid": part_pid,
+                "m1": arrays["Particle/Particle.M1"],
+                "idx": ak.local_index(part_pid),
+            },
+            with_name="Momentum4D",
+        )[mask_hhh6b]
 
-        higgses = ak.to_regular(particles[np.abs(particles.PID) == 25], axis=1)
-        bquarks = ak.to_regular(particles[np.abs(particles.PID) == 5], axis=1)
+        higgses = ak.to_regular(particles[np.abs(particles.pid) == 25], axis=1)
+        bquarks = ak.to_regular(particles[np.abs(particles.pid) == 5], axis=1)
 
-        jets = events.Jet[mask_hhh6b]
-        fjets = events.FatJet[mask_hhh6b]
+        jets = ak.zip(
+            {
+                "pt": arrays["Jet/Jet.PT"],
+                "eta": arrays["Jet/Jet.Eta"],
+                "phi": arrays["Jet/Jet.Phi"],
+                "mass": arrays["Jet/Jet.Mass"],
+                "idx": ak.local_index(arrays["Jet/Jet.PT"]),
+            },
+            with_name="Momentum4D",
+        )[mask_hhh6b]
 
-        def convert_to_vectors(mixins, add_fields=[]):
+        fjets = ak.zip(
+            {
+                "pt": arrays["FatJet/FatJet.PT"],
+                "eta": arrays["FatJet/FatJet.Eta"],
+                "phi": arrays["FatJet/FatJet.Phi"],
+                "mass": arrays["FatJet/FatJet.Mass"],
+                "idx": ak.local_index(arrays["FatJet/FatJet.PT"]),
+            },
+            with_name="Momentum4D",
+        )[mask_hhh6b]
 
-            dictionary = {
-                "pt": mixins.PT,
-                "eta": mixins.Eta,
-                "phi": mixins.Phi,
-                "mass": mixins.Mass,
-            }
-
-            for add_field in add_fields:
-                dictionary.update({add_field: getattr(mixins, add_field)})
-
-            return ak.zip(dictionary, with_name="Momentum4D")
-
-        higgses = convert_to_vectors(higgses, add_fields=["M1"])
-        bquarks = convert_to_vectors(bquarks, add_fields=["M1"])
-        jets = convert_to_vectors(jets)
-        fjets = convert_to_vectors(fjets)
-
-        fj_match = match_fjet(higgses, bquarks, fjets, ak.ArrayBuilder()).snapshot()
+        fj_match = match_fjet_to_higgs(higgses, bquarks, fjets, ak.ArrayBuilder()).snapshot()
         fj_higgses = higgses[fj_match > -1]
 
-        j_match = match_jets(higgses, bquarks, jets, ak.ArrayBuilder()).snapshot()
+        j_match = match_jets_to_higgs(higgses, bquarks, jets, ak.ArrayBuilder()).snapshot()
         match = np.logical_and(j_match[:, :, 0] != j_match[:, :, 1], ak.all(j_match > -1, axis=-1))
         j_higgses = higgses[match]
-
-        double_match = np.logical_and(match, fj_match > -1)
-        dbl_higgses = higgses[double_match]
 
         higgs_pt = hist.Hist.new.Reg(10, 0, 1000, name=r"H $p_T$ [GeV]").Double()
         higgs_pt.fill(ak.flatten(higgses.pt))
@@ -138,23 +93,14 @@ def main():
         j_higgs_pt = hist.Hist.new.Reg(10, 0, 1000, name=r"H $p_T$ [GeV]").Double()
         j_higgs_pt.fill(ak.flatten(j_higgses.pt))
 
-        dbl_higgs_pt = hist.Hist.new.Reg(10, 0, 1000, name=r"H $p_T$ [GeV]").Double()
-        dbl_higgs_pt.fill(ak.flatten(dbl_higgses.pt))
-
         j_ratio = j_higgs_pt / higgs_pt
         j_ratio_uncert = np.abs(clopper_pearson_interval(num=j_higgs_pt.values(), denom=higgs_pt.values()) - j_ratio)
         fj_ratio = fj_higgs_pt / higgs_pt
         fj_ratio_uncert = np.abs(clopper_pearson_interval(num=fj_higgs_pt.values(), denom=higgs_pt.values()) - fj_ratio)
-        # dbl_ratio = dbl_higgs_pt / higgs_pt
-        # dbl_ratio_uncert = np.abs(
-        #    clopper_pearson_interval(num=dbl_higgs_pt.values(), denom=higgs_pt.values())
-        #    - dbl_ratio
-        # )
 
         fig, axs = plt.subplots(2, 1, height_ratios=[2, 1])
         hep.histplot(j_higgs_pt, label="H(bb) matched to 2 AK5 jets", ax=axs[0])
         hep.histplot(fj_higgs_pt, label="H(bb) matched to 1 AK8 jets", ax=axs[0])
-        # hep.histplot(dbl_higgs_pt, label="H(bb) matched to both", ax=axs[0])
         hep.histplot(higgs_pt, label="All H(bb)", ax=axs[0])
         axs[0].set_ylabel("Higgs bosons")
         axs[0].set_xlim(0, 1000)
@@ -173,12 +119,6 @@ def main():
             label="H(bb) matched to 1 AK8 jets",
             ax=axs[1],
         )
-        # hep.histplot(
-        #    dbl_ratio,
-        #    yerr=dbl_ratio_uncert,
-        #    label="H(bb) matched to both",
-        #    ax=axs[1],
-        # )
         axs[1].set_ylabel("Efficiency")
         axs[1].set_xlim(0, 1000)
         plt.tight_layout()

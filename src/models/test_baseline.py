@@ -9,7 +9,7 @@ import numpy as np
 import vector
 from spanet.test import display_table, evaluate_predictions
 
-from src.data.convert_to_h5 import MIN_JETS, N_JETS
+from src.data.cms.convert_to_h5 import MIN_JETS, N_JETS
 
 vector.register_awkward()
 
