@@ -18,7 +18,7 @@ N_FJETS = 3
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
 MIN_JETS = 6
-PROJECT_DIR = Path(__file__).resolve().parents[2]
+PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
 def get_n_features(name, events, n):
@@ -189,7 +189,7 @@ def get_datasets(events):
 
 @click.command()
 @click.argument("in-files", nargs=-1)
-@click.option("--out-file", default=f"{PROJECT_DIR}/data/hhh_training.h5", help="Output file.")
+@click.option("--out-file", default=f"{PROJECT_DIR}/data/cms/hhh_training.h5", help="Output file.")
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
 def main(in_files, out_file, train_frac):
     all_datasets = {}
