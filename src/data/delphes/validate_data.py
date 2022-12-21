@@ -34,13 +34,14 @@ def main(in_filename):
             + [key for key in events.keys() if "Jet/Jet." in key]
             + [key for key in events.keys() if "FatJet/FatJet." in key and "fBits" not in key]
         )
-        arrays = events.arrays(keys)
+        arrays = events.arrays(keys)  # entry_stop=10000
 
         part_pid = arrays["Particle/Particle.PID"]  # PDG ID
-
+        part_m1 = arrays["Particle/Particle.M1"]
+        condition_hhh6b = np.logical_and(np.abs(part_pid) == 5, part_pid[part_m1] == 25)
         # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
         # explicitly mask these out, just keeping hhh6b events
-        mask_hhh6b = ak.count(part_pid[np.abs(part_pid) == 5], axis=-1) == 6
+        mask_hhh6b = ak.count(part_pid[condition_hhh6b], axis=-1) == 6
 
         particles = ak.zip(
             {
@@ -49,14 +50,17 @@ def main(in_filename):
                 "phi": arrays["Particle/Particle.Phi"],
                 "mass": arrays["Particle/Particle.Mass"],
                 "pid": part_pid,
-                "m1": arrays["Particle/Particle.M1"],
+                "m1": part_m1,
+                "d1": arrays["Particle/Particle.D1"],
                 "idx": ak.local_index(part_pid),
             },
             with_name="Momentum4D",
         )[mask_hhh6b]
 
-        higgses = ak.to_regular(particles[np.abs(particles.pid) == 25], axis=1)
-        bquarks = ak.to_regular(particles[np.abs(particles.pid) == 5], axis=1)
+        higgs_condition = np.logical_and(particles.pid == 25, np.abs(particles.pid[particles.d1]) == 5)
+        higgses = ak.to_regular(particles[higgs_condition], axis=1)
+        bquark_condition = np.logical_and(np.abs(particles.pid) == 5, particles.pid[particles.m1] == 25)
+        bquarks = ak.to_regular(particles[bquark_condition], axis=1)
 
         jets = ak.zip(
             {
@@ -129,12 +133,12 @@ def main(in_filename):
         fig.savefig("higgs_pt.pdf")
 
         plt.figure()
-        n_jets = hist.Hist.new.Reg(8, -0.5, 7.5, name="AK5 Jets").Double()
+        n_jets = hist.Hist.new.Reg(13, -0.5, 12.5, name="AK5 Jets").Double()
         n_jets.fill(ak.count(jets.pt, axis=-1))
         hep.histplot(n_jets)
         plt.ylabel("Events")
         plt.xlabel("AK5 Jets")
-        plt.xlim(-0.5, 7.5)
+        plt.xlim(-0.5, 12.5)
         plt.ylim(1, 1e5)
         plt.semilogy()
         plt.tight_layout()
@@ -142,12 +146,12 @@ def main(in_filename):
         plt.savefig("n_jets.pdf")
 
         plt.figure()
-        n_fjets = hist.Hist.new.Reg(5, -0.5, 4.5, name="AK8 Jets").Double()
+        n_fjets = hist.Hist.new.Reg(7, -0.5, 6.5, name="AK8 Jets").Double()
         n_fjets.fill(ak.count(fjets.pt, axis=-1))
         hep.histplot(n_fjets)
         plt.ylabel("Events")
         plt.xlabel("AK8 Jets")
-        plt.xlim(-0.5, 4.5)
+        plt.xlim(-0.5, 6.5)
         plt.ylim(1, 1e5)
         plt.semilogy()
         plt.tight_layout()

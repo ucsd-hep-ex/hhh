@@ -30,15 +30,18 @@ def to_np_array(ak_array, max_n=10, pad=0):
 def get_datasets(arrays):
 
     part_pid = arrays["Particle/Particle.PID"]  # PDG ID
+    part_m1 = arrays["Particle/Particle.M1"]
     # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
     # explicitly mask these events out, just keeping hhh6b events
-    mask_hhh6b = ak.count(part_pid[np.abs(part_pid) == 5], axis=-1) == 6
+    condition_hhh6b = np.logical_and(np.abs(part_pid) == 5, part_pid[part_m1] == 25)
+    mask_hhh6b = ak.count(part_pid[condition_hhh6b], axis=-1) == 6
     part_pid = part_pid[mask_hhh6b]
     part_pt = arrays["Particle/Particle.PT"][mask_hhh6b]
     part_eta = arrays["Particle/Particle.Eta"][mask_hhh6b]
     part_phi = arrays["Particle/Particle.Phi"][mask_hhh6b]
     part_mass = arrays["Particle/Particle.Mass"][mask_hhh6b]
     part_m1 = arrays["Particle/Particle.M1"][mask_hhh6b]
+    part_d1 = arrays["Particle/Particle.D1"][mask_hhh6b]
 
     # small-radius jet info
     pt = arrays["Jet/Jet.PT"][mask_hhh6b]
@@ -81,13 +84,16 @@ def get_datasets(arrays):
             "mass": part_mass,
             "pid": part_pid,
             "m1": part_m1,
+            "d1": part_d1,
             "idx": ak.local_index(part_pid),
         },
         with_name="Momentum4D",
     )
 
-    higgses = ak.to_regular(particles[np.abs(particles.pid) == 25], axis=1)
-    bquarks = ak.to_regular(particles[np.abs(particles.pid) == 5], axis=1)
+    higgs_condition = np.logical_and(particles.pid == 25, np.abs(particles.pid[particles.d1]) == 5)
+    higgses = ak.to_regular(particles[higgs_condition], axis=1)
+    bquark_condition = np.logical_and(np.abs(particles.pid) == 5, particles.pid[particles.m1] == 25)
+    bquarks = ak.to_regular(particles[bquark_condition], axis=1)
 
     jets = ak.zip(
         {
@@ -117,30 +123,35 @@ def get_datasets(arrays):
 
     # keep events with >= MIN_JETS small-radius jets
     mask_minjets = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
-    pt = pt[mask_minjets]
-    eta = eta[mask_minjets]
-    phi = phi[mask_minjets]
-    btag = btag[mask_minjets]
-    higgs_idx = higgs_idx[mask_minjets]
-    matched_fj_idx = matched_fj_idx[mask_minjets]
+    # sort by btag first, then pt
+    sorted_by_pt = ak.argsort(pt, ascending=False, axis=-1)
+    sorted = ak.concatenate([sorted_by_pt[btag == 1], sorted_by_pt[btag == 0]], axis=-1)
+    btag = btag[sorted][mask_minjets]
+    pt = pt[sorted][mask_minjets]
+    eta = eta[sorted][mask_minjets]
+    phi = phi[sorted][mask_minjets]
+    higgs_idx = higgs_idx[sorted][mask_minjets]
+    matched_fj_idx = matched_fj_idx[sorted][mask_minjets]
 
-    fj_pt = fj_pt[mask_minjets]
-    fj_eta = fj_eta[mask_minjets]
-    fj_phi = fj_phi[mask_minjets]
-    fj_mass = fj_mass[mask_minjets]
-    fj_sdmass = fj_sdmass[mask_minjets]
-    fj_nsub = fj_nsub[mask_minjets]
-    fj_tau21 = fj_tau21[mask_minjets]
-    fj_tau32 = fj_tau32[mask_minjets]
-    fj_area = fj_area[mask_minjets]
-    fj_charge = fj_charge[mask_minjets]
-    fj_ptd = fj_ptd[mask_minjets]
-    fj_ehadovereem = fj_ehadovereem[mask_minjets]
-    fj_neutralenergyfrac = fj_neutralenergyfrac[mask_minjets]
-    fj_chargedenergyfrac = fj_chargedenergyfrac[mask_minjets]
-    fj_nneutral = fj_nneutral[mask_minjets]
-    fj_ncharged = fj_ncharged[mask_minjets]
-    fj_higgs_idx = fj_higgs_idx[mask_minjets]
+    # sort by btag first, then pt
+    sorted_by_fj_pt = ak.argsort(fj_pt, ascending=False, axis=-1)
+    fj_pt = fj_pt[sorted_by_fj_pt][mask_minjets]
+    fj_eta = fj_eta[sorted_by_fj_pt][mask_minjets]
+    fj_phi = fj_phi[sorted_by_fj_pt][mask_minjets]
+    fj_mass = fj_mass[sorted_by_fj_pt][mask_minjets]
+    fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_minjets]
+    fj_nsub = fj_nsub[sorted_by_fj_pt][mask_minjets]
+    fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_minjets]
+    fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_minjets]
+    fj_area = fj_area[sorted_by_fj_pt][mask_minjets]
+    fj_charge = fj_charge[sorted_by_fj_pt][mask_minjets]
+    fj_ptd = fj_ptd[sorted_by_fj_pt][mask_minjets]
+    fj_ehadovereem = fj_ehadovereem[sorted_by_fj_pt][mask_minjets]
+    fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_minjets]
+    fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_minjets]
+    fj_nneutral = fj_nneutral[sorted_by_fj_pt][mask_minjets]
+    fj_ncharged = fj_ncharged[sorted_by_fj_pt][mask_minjets]
+    fj_higgs_idx = fj_higgs_idx[sorted_by_fj_pt][mask_minjets]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
