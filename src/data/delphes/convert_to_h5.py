@@ -7,7 +7,12 @@ import h5py
 import numpy as np
 import uproot
 import vector
-from matching import match_fjet_to_jet, match_higgs_to_fjet, match_higgs_to_jet
+
+from src.data.delphes.matching import (
+    match_fjet_to_jet,
+    match_higgs_to_fjet,
+    match_higgs_to_jet,
+)
 
 vector.register_awkward()
 vector.register_numba()

@@ -12,6 +12,7 @@ RUN pip install -q \
     coffea \
     xxhash \
     git+https://github.com/Alexanders101/SPANet@master \
+    vector \
     mplhep \
     jetnet \
     pre-commit \

@@ -13,5 +13,6 @@ setup(
         "spanet",
         "numpy",
         "xxhash",
+        "vector",
     ],
 )

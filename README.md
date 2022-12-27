@@ -20,7 +20,7 @@ cd ..
 ```
 
 ## 4. Download and convert the dataset(s)
-Download ROOT TTree dataset `GluGluToHHHTo6B_SM.root` (Ask for the location) to the `data` directory
+Download ROOT TTree dataset `GluGluToHHHTo6B_SM.root` (Ask for the location) to the `data/delphes` directory
 
 ```bash
 wget <URL> -O data/GluGluToHHHTo6B_SM.root
@@ -28,8 +28,8 @@ wget <URL> -O data/GluGluToHHHTo6B_SM.root
 
 Convert to training and testing HDF5 files.
 ```bash
-python src/data/convert_to_h5.py data/GluGluToHHHTo6B_SM.root --out-file data/hhh_training.h5
-python src/data/convert_to_h5.py data/GluGluToHHHTo6B_SM.root --out-file data/hhh_testing.h5
+python -m src.data.delphes.convert_to_h5 data/delphes/GluGluToHHHTo6B_SM.root --out-file data/delphes/hhh_training.h5
+python -m src.data.delphes.convert_to_h5 data/delphes/GluGluToHHHTo6B_SM.root --out-file data/delphes/hhh_testing.h5
 ```
 
 ## 5. Run the SPANet training
