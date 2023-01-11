@@ -43,6 +43,7 @@ def match_jets_to_higgs(higgses, bquarks, jets, builder):
                 if bquark_m1 == higgs_idx:
                     bdaughters.append(bquark)
             for i, jet in enumerate(jets_event):
+                print(jet.Flavor)
                 dr_b0 = jet.deltaR(bdaughters[0])
                 dr_b1 = jet.deltaR(bdaughters[1])
                 if dr_b0 < JET_DR:
