@@ -56,6 +56,7 @@ def get_datasets(arrays):
     btag = arrays["Jet/Jet.BTag"][mask_hhh6b]
     flavor = arrays["Jet/Jet.Flavor"][mask_hhh6b]
     print(pt.type)
+    print(flavor)
     print(flavor.type)
 
     # large-radius jet info
@@ -114,7 +115,7 @@ def get_datasets(arrays):
         },
         with_name="Momentum4D",
     )
-    print(jets)
+    print(jets.type)
 
     fjets = ak.zip(
         {
