@@ -113,6 +113,7 @@ def get_datasets(arrays):
         },
         with_name="Momentum4D",
     )
+    print(jets)
 
     fjets = ak.zip(
         {
