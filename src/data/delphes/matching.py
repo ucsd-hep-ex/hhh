@@ -43,7 +43,6 @@ def match_jets_to_higgs(higgses, bquarks, jets, builder):
                 if bquark_m1 == higgs_idx:
                     bdaughters.append(bquark)
             for i, jet in enumerate(jets_event):
-                print(jet.Flavor)
                 dr_b0 = jet.deltaR(bdaughters[0])
                 dr_b1 = jet.deltaR(bdaughters[1])
                 if dr_b0 < JET_DR:
@@ -86,6 +85,7 @@ def match_higgs_to_jet(higgses, bquarks, jets, builder):
         builder.begin_list()
         for i, jet in enumerate(jets_event):
             match_idx = -1
+            print(jet.Flavor)
             for j, (_, higgs_idx) in enumerate(zip(higgses_event, higgses_event.idx)):
                 for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.m1):
                     if bquark_m1 == higgs_idx and jet.deltaR(bquark) < JET_DR:
