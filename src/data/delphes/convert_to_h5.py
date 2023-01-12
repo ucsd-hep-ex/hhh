@@ -108,8 +108,8 @@ def get_datasets(arrays):
             "eta": eta,
             "phi": phi,
             "mass": mass,
-            "idx": ak.local_index(pt),
             "flavor": flavor,
+            "idx": ak.local_index(pt),
         },
         with_name="Momentum4D",
     )
