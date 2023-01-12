@@ -54,6 +54,7 @@ def get_datasets(arrays):
     phi = arrays["Jet/Jet.Phi"][mask_hhh6b]
     mass = arrays["Jet/Jet.Mass"][mask_hhh6b]
     btag = arrays["Jet/Jet.BTag"][mask_hhh6b]
+    flavor = arrays["Jet/Jet.Flavor"][mask_hhh6b]
 
     # large-radius jet info
     fj_pt = arrays["FatJet/FatJet.PT"][mask_hhh6b]
@@ -107,6 +108,7 @@ def get_datasets(arrays):
             "phi": phi,
             "mass": mass,
             "idx": ak.local_index(pt),
+            "flavor": flavor,
         },
         with_name="Momentum4D",
     )
