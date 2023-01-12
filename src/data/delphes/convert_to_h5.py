@@ -56,7 +56,6 @@ def get_datasets(arrays):
     btag = arrays["Jet/Jet.BTag"][mask_hhh6b]
     flavor = arrays["Jet/Jet.Flavor"][mask_hhh6b]
     print(pt.type)
-    print(flavor)
     print(flavor.type)
 
     # large-radius jet info
