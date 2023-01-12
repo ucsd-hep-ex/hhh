@@ -83,6 +83,7 @@ def match_higgs_to_fjet(higgses, bquarks, fjets, builder):
 def match_higgs_to_jet(higgses, bquarks, jets, builder):
     for higgses_event, bquarks_event, jets_event in zip(higgses, bquarks, jets):
         builder.begin_list()
+        print(jets_event)
         for i, jet in enumerate(jets_event):
             match_idx = -1
             for j, (_, higgs_idx) in enumerate(zip(higgses_event, higgses_event.idx)):
