@@ -84,7 +84,6 @@ def match_higgs_to_jet(higgses, bquarks, jets, builder):
     for higgses_event, bquarks_event, jets_event in zip(higgses, bquarks, jets):
         builder.begin_list()
         for i, (jet, jet_flv) in enumerate(zip(jets_event, jets_event.flavor)):
-            print('one', jet_flv[0])
             print('all', jet_flv)
             if (jet_flv != 5) or (jet_flv != -5):
                 continue
