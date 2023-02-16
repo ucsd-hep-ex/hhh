@@ -25,11 +25,11 @@ spec:
           mountPath: /opt/repo
         resources:
           limits:
-            memory: 64Gi
+            memory: 16Gi
             cpu: "8"
             nvidia.com/gpu: "1"
           requests:
-            memory: 32Gi
+            memory: 8Gi
             cpu: "4"
             nvidia.com/gpu: "1"
       initContainers:
