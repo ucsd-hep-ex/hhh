@@ -40,7 +40,7 @@ spec:
           - --single-branch
           - https://github.com/ucsd-hep-ex/hhh
           - -b
-          - spanet
+          - main
           - --recurse-submodules
           - /opt/repo/hhh
         volumeMounts:
