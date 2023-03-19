@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: hhh-job-test
+  name: hhh-job-test-billy-small
   labels:
     jobgroup: hhh-job-test
 spec:

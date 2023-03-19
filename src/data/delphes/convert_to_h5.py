@@ -31,6 +31,14 @@ PROJECT_DIR = Path(__file__).resolve().parents[3]
 def to_np_array(ak_array, max_n=10, pad=0):
     return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad).to_numpy()
 
+def get_n_features_v2(arrays, n):
+    result = []
+    for array in arrays:
+        if ak.num(array, axis=0) > n:
+            result.append(array[0:n])
+        else:
+            result.append(array)
+    return ak.Array(result)
 
 def get_datasets(arrays):
 
@@ -54,6 +62,7 @@ def get_datasets(arrays):
     phi = arrays["Jet/Jet.Phi"][mask_hhh6b]
     mass = arrays["Jet/Jet.Mass"][mask_hhh6b]
     btag = arrays["Jet/Jet.BTag"][mask_hhh6b]
+    flavor = arrays["Jet/Jet.Flavor"][mask_hhh6b]
 
     # large-radius jet info
     fj_pt = arrays["FatJet/FatJet.PT"][mask_hhh6b]
@@ -106,6 +115,7 @@ def get_datasets(arrays):
             "eta": eta,
             "phi": phi,
             "mass": mass,
+            "flavor": flavor,
             "idx": ak.local_index(pt),
         },
         with_name="Momentum4D",
@@ -137,6 +147,13 @@ def get_datasets(arrays):
     phi = phi[sorted][mask_minjets]
     higgs_idx = higgs_idx[sorted][mask_minjets]
     matched_fj_idx = matched_fj_idx[sorted][mask_minjets]
+
+    btag = get_n_features_v2(btag, N_JETS)
+    pt = get_n_features_v2(pt, N_JETS)
+    eta = get_n_features_v2(eta, N_JETS)
+    phi = get_n_features_v2(phi, N_JETS)
+    higgs_idx = get_n_features_v2(higgs_idx, N_JETS)
+    matched_fj_idx = get_n_features_v2(matched_fj_idx, N_JETS)
 
     # sort by btag first, then pt
     sorted_by_fj_pt = ak.argsort(fj_pt, ascending=False, axis=-1)
