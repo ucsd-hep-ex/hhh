@@ -1,0 +1,107 @@
+# ---------------------------------------------------
+# REQUIRED - INPUTS - List all inputs to SPANet here.
+# ---------------------------------------------------
+INPUTS:
+  # -----------------------------------------------------------------------------
+  # REQUIRED - SEQUENTIAL - inputs which can have an arbitrary number of vectors.
+  # -----------------------------------------------------------------------------
+  SEQUENTIAL:
+    Jets:
+      pt: log_normalize
+      eta: normalize
+      sinphi: none
+      cosphi: none
+      btag: none
+    
+  # ---------------------------------------------------------------------
+  # REQUIRED - GLOBAL - inputs which will have a single vector per event.
+  # ---------------------------------------------------------------------
+  GLOBAL:
+    Masses:
+        mass0   : none
+        mass1   : none
+        mass2   : none
+        mass3   : none
+        mass4   : none
+        mass5   : none
+        mass6   : none
+        mass7   : none
+        mass8   : none
+        mass9   : none
+        mass10  : none
+        mass11  : none
+        mass12  : none
+        mass13  : none
+        mass14  : none
+        mass15  : none
+        mass16  : none
+        mass17  : none
+        mass18  : none
+        mass19  : none
+        mass20  : none
+        mass21  : none
+        mass22  : none
+        mass23  : none
+        mass24  : none
+        mass25  : none
+        mass26  : none
+        mass27  : none
+        mass28  : none
+        mass29  : none
+        mass30  : none
+        mass31  : none
+        mass32  : none
+        mass33  : none
+        mass34  : none
+        mass35  : none
+        mass36  : none
+        mass37  : none
+        mass38  : none
+        mass39  : none
+        mass40  : none
+        mass41  : none
+        mass42  : none
+        mass43  : none
+        mass44  : none
+  
+
+
+
+# ----------------------------------------------------------------------
+# REQUIRED - EVENT - Complete list of resonance particles and daughters.
+# ----------------------------------------------------------------------
+EVENT:
+  h1:
+    - b1: Jets
+    - b2: Jets
+  h2:
+    - b1: Jets
+    - b2: Jets
+  h3:
+    - b1: Jets
+    - b2: Jets
+
+# ---------------------------------------------------------
+# REQUIRED KEY - PERMUTATIONS - List of valid permutations.
+# ---------------------------------------------------------
+PERMUTATIONS:
+    EVENT:
+      - [ h1, h2, h3 ]
+    h1:
+      - [ b1, b2 ]
+    h2:
+      - [ b1, b2 ]
+    h3:
+      - [ b1, b2 ]
+
+
+# ------------------------------------------------------------------------------
+# REQUIRED - REGRESSIONS - List of desired features to regress from observables.
+# ------------------------------------------------------------------------------
+REGRESSIONS:
+
+
+# -----------------------------------------------------------------------------
+# REQUIRED - REGRESSIONS - List of desired classes to predict from observables.
+# -----------------------------------------------------------------------------
+CLASSIFICATIONS:
