@@ -27,7 +27,7 @@ for nj in range(MIN_JETS, N_JETS + 1):
 
 @click.command()
 @click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
-@click.option("--event-file", default=f"{PROJECT_DIR}/event_files/hhh.yaml", help="Event file")
+@click.option("--event-file", default=f"{PROJECT_DIR}/event_files/cms/hhh.yaml", help="Event file")
 def main(test_file, event_file):
     in_file = h5py.File(test_file)
 
