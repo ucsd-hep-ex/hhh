@@ -17,7 +17,7 @@ RUN pip install -q \
     jetnet \
     pre-commit \
     jupyter_contrib_nbextensions \
-    'protobuf==3.9.2'
+    protobuf
 
 RUN jupyter contrib nbextension install --user \
     && jupyter nbextension enable execute_time/ExecuteTime
