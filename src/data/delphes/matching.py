@@ -1,7 +1,7 @@
 import awkward as ak
 import numba as nb
-import vector
 import numpy as np
+import vector
 
 vector.register_awkward()
 vector.register_numba()
