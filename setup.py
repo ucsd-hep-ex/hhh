@@ -10,7 +10,6 @@ setup(
     license="MIT",
     install_requires=[
         "coffea",
-        "spanet",
         "numpy",
         "xxhash",
         "vector",
