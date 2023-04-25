@@ -1,5 +1,9 @@
 INSTALLATION:
 
+ssh -y <username>@lxplus-gpu.cern.ch
+
+cd 
+
 git clone https://github.com/Joxy97/HHH--6b.git
 
 cd HHH--6b
