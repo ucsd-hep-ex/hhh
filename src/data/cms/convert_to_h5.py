@@ -15,11 +15,9 @@ logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
 N_FJETS = 3
-N_MASSES = 45
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
 MIN_JETS = 6
-MIN_MASS = 50
 PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
@@ -28,13 +26,6 @@ def get_n_features(name, events, n):
         [np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, n + 1)],
         axis=-1,
     )
-
-def get_n_masses(name, events, n):
-    return ak.concatenate(
-        [np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(0, n)],
-        axis=-1,
-    )
-
 
 
 def get_datasets(events):
@@ -48,9 +39,6 @@ def get_datasets(events):
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, N_JETS)
     matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, N_JETS)
-    inv_mass = get_n_features("jet{i}Mass", events, N_JETS)
-
-    mass = get_n_masses("mass{i}", events, N_MASSES)
 
     # large-radius jet info
     fj_pt = get_n_features("fatJet{i}Pt", events, N_FJETS)
@@ -66,9 +54,6 @@ def get_datasets(events):
     fj_qcd = get_n_features("fatJet{i}PNetQCD", events, N_FJETS)
     fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, N_FJETS)
 
-    
-
-
     # keep events with >= MIN_JETS small-radius jets
     mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
     pt = pt[mask]
@@ -79,9 +64,6 @@ def get_datasets(events):
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
     matched_fj_idx = matched_fj_idx[mask]
-    inv_mass = inv_mass[mask]
-    
-    mass = mass[mask]
 
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
@@ -98,7 +80,6 @@ def get_datasets(events):
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
-    mask_mass = mass > MIN_MASS
 
     # mask to define zero-padded large-radius jets
     fj_mask = fj_pt > MIN_FJET_PT
@@ -166,26 +147,21 @@ def get_datasets(events):
     datasets["INPUTS/Jets/btag"] = btag.to_numpy()
     datasets["INPUTS/Jets/jetid"] = jet_id.to_numpy()
     datasets["INPUTS/Jets/matchedfj"] = matched_fj_idx.to_numpy()
-    datasets["INPUTS/Jets/invmass"] = inv_mass.to_numpy()
 
     datasets["INPUTS/BoostedJets/MASK"] = fj_mask.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_pt"] = fj_pt.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_eta"] = fj_eta.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_phi"] = fj_phi.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_sinphi"] = np.sin(fj_phi.to_numpy())
-    datasets["INPUTS/BoostedJets/fj_cosphi"] = np.cos(fj_phi.to_numpy())
-    datasets["INPUTS/BoostedJets/fj_mass"] = fj_mass.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_sdmass"] = fj_sdmass.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_regmass"] = fj_regmass.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_nsub"] = fj_nsub.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_tau32"] = fj_tau32.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_xbb"] = fj_xbb.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_xqq"] = fj_xqq.to_numpy()
-    datasets["INPUTS/BoostedJets/fj_qcd"] = fj_qcd.to_numpy()
-
-    for i in range(0, N_MASSES):
-        datasets[f"INPUTS/Masses/MASK{i}"] = mask_mass.to_numpy()[:, i]
-        datasets[f"INPUTS/Masses/mass{i}"] = mass.to_numpy()[:, i]
+    datasets["INPUTS/BoostedJets/pt"] = fj_pt.to_numpy()
+    datasets["INPUTS/BoostedJets/eta"] = fj_eta.to_numpy()
+    datasets["INPUTS/BoostedJets/phi"] = fj_phi.to_numpy()
+    datasets["INPUTS/BoostedJets/sinphi"] = np.sin(fj_phi.to_numpy())
+    datasets["INPUTS/BoostedJets/cosphi"] = np.cos(fj_phi.to_numpy())
+    datasets["INPUTS/BoostedJets/mass"] = fj_mass.to_numpy()
+    datasets["INPUTS/BoostedJets/sdmass"] = fj_sdmass.to_numpy()
+    datasets["INPUTS/BoostedJets/regmass"] = fj_regmass.to_numpy()
+    datasets["INPUTS/BoostedJets/nsub"] = fj_nsub.to_numpy()
+    datasets["INPUTS/BoostedJets/tau32"] = fj_tau32.to_numpy()
+    datasets["INPUTS/BoostedJets/xbb"] = fj_xbb.to_numpy()
+    datasets["INPUTS/BoostedJets/xqq"] = fj_xqq.to_numpy()
+    datasets["INPUTS/BoostedJets/qcd"] = fj_qcd.to_numpy()
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
