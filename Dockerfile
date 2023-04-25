@@ -11,7 +11,7 @@ RUN sudo apt-get update \
 RUN pip install -q \
     coffea \
     xxhash \
-    git+https://github.com/Alexanders101/SPANet@master \
+    git+https://github.com/jmduarte/SPANet@patch-1 \
     vector \
     mplhep \
     jetnet \
