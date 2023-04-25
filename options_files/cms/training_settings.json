@@ -1,5 +1,5 @@
 {
-    "hidden_dim": 32,
+    "hidden_dim": 64,
     "transformer_dim": 32,
     "initial_embedding_dim": 16,
     "position_embedding_dim": 16,
@@ -22,7 +22,7 @@
     "masking": "Filling",
     "skip_connections": true,
     "initial_embedding_skip_connections": true,
-    "event_info_file": "event_files/hhh.yaml",
+    "event_info_file": "event_files/cms/hhh.yaml",
     "training_file": "data/cms/v20-random-seed/hhh_training.h5",
     "normalize_features": true,
     "limit_to_num_jets": 0,
@@ -31,7 +31,7 @@
     "balance_particles": true,
     "dataset_limit": 1.0,
     "train_validation_split": 0.95,
-    "batch_size": 1024,
+    "batch_size": 4096,
     "num_dataloader_workers": 8,
     "mask_sequence_vectors": true,
     "combine_pair_loss": "min",
@@ -48,7 +48,7 @@
     "l2_penalty": 0.0002,
     "gradient_clip": 0.0,
     "dropout": 0.2,
-    "epochs": 2000,
+    "epochs": 250,
     "num_gpu": 1,
     "verbose_output": true
 }
