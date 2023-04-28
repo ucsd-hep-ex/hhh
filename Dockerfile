@@ -11,13 +11,14 @@ RUN sudo apt-get update \
 RUN pip install -q \
     coffea \
     xxhash \
-    git+https://github.com/jmduarte/SPANet@patch-1 \
+    git+https://github.com/Alexanders101/SPANet@master \
     vector \
     mplhep \
     jetnet \
     pre-commit \
     jupyter_contrib_nbextensions \
-    protobuf
+    protobuf \
+    pytorch-lightning==1.9.3
 
 RUN jupyter contrib nbextension install --user \
     && jupyter nbextension enable execute_time/ExecuteTime
