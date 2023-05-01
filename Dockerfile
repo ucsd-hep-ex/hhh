@@ -17,7 +17,8 @@ RUN pip install -q \
     jetnet \
     pre-commit \
     jupyter_contrib_nbextensions \
-    protobuf
+    protobuf \
+    pytorch-lightning==1.9.3
 
 RUN jupyter contrib nbextension install --user \
     && jupyter nbextension enable execute_time/ExecuteTime
