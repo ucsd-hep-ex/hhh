@@ -29,7 +29,6 @@ def get_n_features(name, events, n):
 
 
 def get_datasets(events):
-
     # small-radius jet info
     pt = get_n_features("jet{i}Pt", events, N_JETS)
     eta = get_n_features("jet{i}Eta", events, N_JETS)
