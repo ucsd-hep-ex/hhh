@@ -29,36 +29,34 @@ def get_n_features(name, events, iterator):
         axis=-1,
     )
 
+
 def get_datasets(events):
     # small-radius jet info
-    pt = get_n_features("jet{i}Pt", events, range(1, N_JETS+1))
-    eta = get_n_features("jet{i}Eta", events, range(1, N_JETS+1))
-    phi = get_n_features("jet{i}Phi", events, range(1, N_JETS+1))
-    btag = get_n_features("jet{i}DeepFlavB", events, range(1, N_JETS+1))
-    jet_id = get_n_features("jet{i}JetId", events, range(1, N_JETS+1))
-    higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, range(1, N_JETS+1))
-    hadron_flavor = get_n_features("jet{i}HadronFlavour", events, range(1, N_JETS+1))
-    matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, range(1, N_JETS+1))
-    inv_mass = get_n_features("jet{i}Mass", events, range(1, N_JETS+1))
+    pt = get_n_features("jet{i}Pt", events, range(1, N_JETS + 1))
+    eta = get_n_features("jet{i}Eta", events, range(1, N_JETS + 1))
+    phi = get_n_features("jet{i}Phi", events, range(1, N_JETS + 1))
+    btag = get_n_features("jet{i}DeepFlavB", events, range(1, N_JETS + 1))
+    jet_id = get_n_features("jet{i}JetId", events, range(1, N_JETS + 1))
+    higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, range(1, N_JETS + 1))
+    hadron_flavor = get_n_features("jet{i}HadronFlavour", events, range(1, N_JETS + 1))
+    matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, range(1, N_JETS + 1))
+    inv_mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
 
     mass = get_n_features("mass{i}", events, range(N_MASSES))
 
     # large-radius jet info
-    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS+1))
-    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, N_FJETS+1))
-    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, N_FJETS+1))
-    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, N_FJETS+1))
-    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, N_FJETS+1))
-    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, N_FJETS+1))
-    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, N_FJETS+1))
-    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, N_FJETS+1))
-    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, N_FJETS+1))
-    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, N_FJETS+1))
-    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, N_FJETS+1))
-    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, range(1, N_FJETS+1))
-
-    
-
+    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS + 1))
+    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, N_FJETS + 1))
+    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, N_FJETS + 1))
+    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, N_FJETS + 1))
+    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, N_FJETS + 1))
+    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, N_FJETS + 1))
+    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, N_FJETS + 1))
+    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, N_FJETS + 1))
+    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, N_FJETS + 1))
+    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, N_FJETS + 1))
+    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, N_FJETS + 1))
+    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, range(1, N_FJETS + 1))
 
     # keep events with >= MIN_JETS small-radius jets
     mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
@@ -71,7 +69,7 @@ def get_datasets(events):
     hadron_flavor = hadron_flavor[mask]
     matched_fj_idx = matched_fj_idx[mask]
     inv_mass = inv_mass[mask]
-    
+
     mass = mass[mask]
 
     fj_pt = fj_pt[mask]
