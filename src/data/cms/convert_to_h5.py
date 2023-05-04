@@ -57,7 +57,7 @@ def get_datasets(events):
     # keep events with >= MIN_JETS small-radius jets
     mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
     pt = pt[mask]
-    ptcorr= ptcorr[mask]
+    ptcorr = ptcorr[mask]
     eta = eta[mask]
     phi = phi[mask]
     btag = btag[mask]
