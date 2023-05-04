@@ -33,6 +33,7 @@ def get_n_features(name, events, iterator):
 def get_datasets(events):
     # small-radius jet info
     pt = get_n_features("jet{i}Pt", events, range(1, N_JETS + 1))
+    ptcorr = get_n_features("jet{i}PtCorr", events, range(1, N_JETS + 1))
     eta = get_n_features("jet{i}Eta", events, range(1, N_JETS + 1))
     phi = get_n_features("jet{i}Phi", events, range(1, N_JETS + 1))
     btag = get_n_features("jet{i}DeepFlavB", events, range(1, N_JETS + 1))
@@ -61,6 +62,7 @@ def get_datasets(events):
     # keep events with >= MIN_JETS small-radius jets
     mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
     pt = pt[mask]
+    ptcorr = ptcorr[mask]
     eta = eta[mask]
     phi = phi[mask]
     btag = btag[mask]
@@ -148,6 +150,7 @@ def get_datasets(events):
     datasets = {}
     datasets["INPUTS/Jets/MASK"] = mask.to_numpy()
     datasets["INPUTS/Jets/pt"] = pt.to_numpy()
+    datasets["INPUTS/Jets/ptcorr"] = ptcorr.to_numpy()
     datasets["INPUTS/Jets/eta"] = eta.to_numpy()
     datasets["INPUTS/Jets/phi"] = phi.to_numpy()
     datasets["INPUTS/Jets/sinphi"] = np.sin(phi.to_numpy())
