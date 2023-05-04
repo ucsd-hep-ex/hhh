@@ -43,7 +43,6 @@ def get_n_features_v2(arrays, n):
 
 
 def get_datasets(arrays):
-
     part_pid = arrays["Particle/Particle.PID"]  # PDG ID
     part_m1 = arrays["Particle/Particle.M1"]
     # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
