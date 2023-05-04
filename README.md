@@ -49,3 +49,35 @@ python -m spanet.test spanet_output/version_0 -tf data/delphes/v2/hhh_testing.h5
 ```bash
 python -m src.models.test_baseline --test-file data/delphes/v2/hhh_testing.h5
 ```
+
+# Instructions for CMS data set baseline
+The CMS dataset was updated to run with the `v26` setup (`nAK4 >= 4 and HLT selection`). The update includes the possibility to apply the b-jet energy correction. By keeping events with at a least 4 jets, the boosted training can be performed on a maximum number of events and topologies.
+
+List of samples (currently setup validated using 2018):
+```
+/eos/user/m/mstamenk/CxAOD31run/hhh-6b/cms-samples-spanet/v26/GluGluToHHHTo6B_SM_spanet_v26_2016APV.root
+/eos/user/m/mstamenk/CxAOD31run/hhh-6b/cms-samples-spanet/v26/GluGluToHHHTo6B_SM_spanet_v26_2016.root
+/eos/user/m/mstamenk/CxAOD31run/hhh-6b/cms-samples-spanet/v26/GluGluToHHHTo6B_SM_spanet_v26_2017.root
+/eos/user/m/mstamenk/CxAOD31run/hhh-6b/cms-samples-spanet/v26/GluGluToHHHTo6B_SM_spanet_v26_2018.root
+```
+
+To run the framework, first convert the samples (this will allow to use both jets `pt` or `ptcorr`, steerable from the configuration file:
+```
+mkdir data/cms/v26/
+python -m src.data.cms.convert_to_h5 /eos/user/m/mstamenk/CxAOD31run/hhh-6b/cms-samples-spanet/v26/GluGluToHHHTo6B_SM_spanet_v26_2018.root --out-file data/cms/v26/hhh_training.h5
+python -m src.data.cms.convert_to_h5 /eos/user/m/mstamenk/CxAOD31run/hhh-6b/cms-samples-spanet/v26/GluGluToHHHTo6B_SM_spanet_v26_2018.root --out-file data/cms/v26/hhh_testing.h5
+```
+
+Then training can be done via:
+
+```
+python -m spanet.train -of options_files/cms/hhh_v26.json --gpus 1
+```
+
+Two config files exist for the event options:
+```
+event_files/cms/hhh.yaml # regular jet pT
+event_files/cms/hhh_bregcorr.yaml # jet pT with b-jet energy correction scale factors applied
+```
+
+Note: to run the training with the b-jet energy correction applied, the `log_normalize` of the input variable was removed. Keeping it caused a 'Assignement collision'.
