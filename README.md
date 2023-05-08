@@ -81,4 +81,3 @@ event_files/cms/hhh_bregcorr.yaml # jet pT with b-jet energy correction scale fa
 ```
 
 Note: to run the training with the b-jet energy correction applied, the `log_normalize` of the input variable was removed. Keeping it caused a 'Assignement collision'.
-

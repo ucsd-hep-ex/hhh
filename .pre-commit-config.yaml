@@ -21,13 +21,13 @@ repos:
     args: ['--fix=no']
 
 - repo: https://github.com/PyCQA/isort
-  rev: 5.10.1
+  rev: 5.12.0
   hooks:
   - id: isort
     args: ["--profile", "black"]
 
 - repo: https://github.com/psf/black
-  rev: 22.10.0
+  rev: 23.3.0
   hooks:
   - id: black
     language_version: python3
@@ -40,3 +40,12 @@ repos:
     # black-compatible flake-8 config
     args: ['--max-line-length=125',  # github viewer width
            '--extend-ignore=E203']  # E203 is not PEP8 compliant
+
+ci:
+    autofix_commit_msg: '[pre-commit.ci] auto fixes from pre-commit hooks'
+    autofix_prs: true
+    autoupdate_branch: 'main'
+    autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: true

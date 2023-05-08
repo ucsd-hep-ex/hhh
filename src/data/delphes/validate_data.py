@@ -27,7 +27,6 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 def main(in_filename):
     # SM HHH
     with uproot.open(in_filename) as in_file:
-
         events = in_file["Delphes"]
         keys = (
             [key for key in events.keys() if "Particle/Particle." in key and "fBits" not in key]
