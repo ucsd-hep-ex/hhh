@@ -35,6 +35,7 @@ def get_datasets(events):
     eta = get_n_features("jet{i}Eta", events, N_JETS)
     phi = get_n_features("jet{i}Phi", events, N_JETS)
     btag = get_n_features("jet{i}DeepFlavB", events, N_JETS)
+    mass = get_n_features("jet{i}Mass", events, N_JETS)
     jet_id = get_n_features("jet{i}JetId", events, N_JETS)
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, N_JETS)
@@ -61,6 +62,7 @@ def get_datasets(events):
     eta = eta[mask]
     phi = phi[mask]
     btag = btag[mask]
+    mass = mass[mask]
     jet_id = jet_id[mask]
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
@@ -147,6 +149,7 @@ def get_datasets(events):
     datasets["INPUTS/Jets/sinphi"] = np.sin(phi.to_numpy())
     datasets["INPUTS/Jets/cosphi"] = np.cos(phi.to_numpy())
     datasets["INPUTS/Jets/btag"] = btag.to_numpy()
+    datasets["INPUTS/Jets/mass"] = mass.to_numpy()
     datasets["INPUTS/Jets/jetid"] = jet_id.to_numpy()
     datasets["INPUTS/Jets/matchedfj"] = matched_fj_idx.to_numpy()
 
@@ -178,13 +181,13 @@ def get_datasets(events):
     datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
 
     datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
-    datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy()
+    datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy().reshape(h1_fj_mask.to_numpy().shape)
 
     datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
-    datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy()
+    datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy().reshape(h2_fj_mask.to_numpy().shape)
 
     datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
-    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy()
+    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
 
     return datasets
 
