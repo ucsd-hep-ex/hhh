@@ -315,8 +315,8 @@ def main(in_files, out_file, train_frac):
     with h5py.File(out_file, "w") as output:
         for dataset_name, all_data in all_datasets.items():
             concat_data = np.concatenate(all_data, axis=0)
-            logging.info(f"Dataset name: {dataset_name}")                     
-            logging.info(f"Dataset shape: {concat_data.shape}")                       
+            logging.info(f"Dataset name: {dataset_name}")
+            logging.info(f"Dataset shape: {concat_data.shape}")
             output.create_dataset(dataset_name, data=concat_data)
 
 
