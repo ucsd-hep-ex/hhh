@@ -7,7 +7,7 @@ INPUTS:
   # -----------------------------------------------------------------------------
   SEQUENTIAL:
     Jets:
-      ptcorr: none
+      pt: log_normalize
       eta: normalize
       sinphi: none
       cosphi: none
