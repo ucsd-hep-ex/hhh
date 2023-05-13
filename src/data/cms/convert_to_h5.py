@@ -15,45 +15,53 @@ logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
 N_FJETS = 3
+N_MASSES = 45
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
 MIN_JETS = 6
+MIN_MASS = 50
 PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
-def get_n_features(name, events, n):
+def get_n_features(name, events, iterator):
+    if name.format(i=iterator[0]) not in dir(events):
+        logging.warning(f"Variable {name.format(i=iterator[0])} does not exist in tree; returning all 0s")
+        return ak.from_numpy(np.zeros((len(events), len(iterator))))
     return ak.concatenate(
-        [np.expand_dims(events[name.format(i=i)], axis=-1) for i in range(1, n + 1)],
+        [np.expand_dims(events[name.format(i=i)], axis=-1) for i in iterator],
         axis=-1,
     )
 
 
 def get_datasets(events):
     # small-radius jet info
-    pt = get_n_features("jet{i}Pt", events, N_JETS)
-    ptcorr = get_n_features("jet{i}PtCorr", events, N_JETS)
-    eta = get_n_features("jet{i}Eta", events, N_JETS)
-    phi = get_n_features("jet{i}Phi", events, N_JETS)
-    btag = get_n_features("jet{i}DeepFlavB", events, N_JETS)
-    mass = get_n_features("jet{i}Mass", events, N_JETS)
-    jet_id = get_n_features("jet{i}JetId", events, N_JETS)
-    higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, N_JETS)
-    hadron_flavor = get_n_features("jet{i}HadronFlavour", events, N_JETS)
-    matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, N_JETS)
+    pt = get_n_features("jet{i}Pt", events, range(1, N_JETS + 1))
+    ptcorr = get_n_features("jet{i}PtCorr", events, range(1, N_JETS + 1))
+    eta = get_n_features("jet{i}Eta", events, range(1, N_JETS + 1))
+    phi = get_n_features("jet{i}Phi", events, range(1, N_JETS + 1))
+    btag = get_n_features("jet{i}DeepFlavB", events, range(1, N_JETS + 1))
+    jet_id = get_n_features("jet{i}JetId", events, range(1, N_JETS + 1))
+    higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, range(1, N_JETS + 1))
+    hadron_flavor = get_n_features("jet{i}HadronFlavour", events, range(1, N_JETS + 1))
+    matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, range(1, N_JETS + 1))
+    inv_mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
+
+    # paired masses
+    mass = get_n_features("mass{i}", events, range(N_MASSES))
 
     # large-radius jet info
-    fj_pt = get_n_features("fatJet{i}Pt", events, N_FJETS)
-    fj_eta = get_n_features("fatJet{i}Eta", events, N_FJETS)
-    fj_phi = get_n_features("fatJet{i}Phi", events, N_FJETS)
-    fj_mass = get_n_features("fatJet{i}Mass", events, N_FJETS)
-    fj_sdmass = get_n_features("fatJet{i}MassSD", events, N_FJETS)
-    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, N_FJETS)
-    fj_nsub = get_n_features("fatJet{i}NSubJets", events, N_FJETS)
-    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, N_FJETS)
-    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, N_FJETS)
-    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, N_FJETS)
-    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, N_FJETS)
-    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, N_FJETS)
+    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS + 1))
+    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, N_FJETS + 1))
+    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, N_FJETS + 1))
+    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, N_FJETS + 1))
+    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, N_FJETS + 1))
+    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, N_FJETS + 1))
+    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, N_FJETS + 1))
+    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, N_FJETS + 1))
+    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, N_FJETS + 1))
+    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, N_FJETS + 1))
+    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, N_FJETS + 1))
+    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, range(1, N_FJETS + 1))
 
     # keep events with >= MIN_JETS small-radius jets
     mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
@@ -67,6 +75,9 @@ def get_datasets(events):
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
     matched_fj_idx = matched_fj_idx[mask]
+    inv_mass = inv_mass[mask]
+
+    mass = mass[mask]
 
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
@@ -83,6 +94,7 @@ def get_datasets(events):
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
+    mask_mass = mass > MIN_MASS
 
     # mask to define zero-padded large-radius jets
     fj_mask = fj_pt > MIN_FJET_PT
@@ -152,21 +164,26 @@ def get_datasets(events):
     datasets["INPUTS/Jets/mass"] = mass.to_numpy()
     datasets["INPUTS/Jets/jetid"] = jet_id.to_numpy()
     datasets["INPUTS/Jets/matchedfj"] = matched_fj_idx.to_numpy()
+    datasets["INPUTS/Jets/invmass"] = inv_mass.to_numpy()
 
     datasets["INPUTS/BoostedJets/MASK"] = fj_mask.to_numpy()
-    datasets["INPUTS/BoostedJets/pt"] = fj_pt.to_numpy()
-    datasets["INPUTS/BoostedJets/eta"] = fj_eta.to_numpy()
-    datasets["INPUTS/BoostedJets/phi"] = fj_phi.to_numpy()
-    datasets["INPUTS/BoostedJets/sinphi"] = np.sin(fj_phi.to_numpy())
-    datasets["INPUTS/BoostedJets/cosphi"] = np.cos(fj_phi.to_numpy())
-    datasets["INPUTS/BoostedJets/mass"] = fj_mass.to_numpy()
-    datasets["INPUTS/BoostedJets/sdmass"] = fj_sdmass.to_numpy()
-    datasets["INPUTS/BoostedJets/regmass"] = fj_regmass.to_numpy()
-    datasets["INPUTS/BoostedJets/nsub"] = fj_nsub.to_numpy()
-    datasets["INPUTS/BoostedJets/tau32"] = fj_tau32.to_numpy()
-    datasets["INPUTS/BoostedJets/xbb"] = fj_xbb.to_numpy()
-    datasets["INPUTS/BoostedJets/xqq"] = fj_xqq.to_numpy()
-    datasets["INPUTS/BoostedJets/qcd"] = fj_qcd.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_pt"] = fj_pt.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_eta"] = fj_eta.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_phi"] = fj_phi.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_sinphi"] = np.sin(fj_phi.to_numpy())
+    datasets["INPUTS/BoostedJets/fj_cosphi"] = np.cos(fj_phi.to_numpy())
+    datasets["INPUTS/BoostedJets/fj_mass"] = fj_mass.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_sdmass"] = fj_sdmass.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_regmass"] = fj_regmass.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_nsub"] = fj_nsub.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_tau32"] = fj_tau32.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_xbb"] = fj_xbb.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_xqq"] = fj_xqq.to_numpy()
+    datasets["INPUTS/BoostedJets/fj_qcd"] = fj_qcd.to_numpy()
+
+    for i in range(0, N_MASSES):
+        datasets[f"INPUTS/Masses/MASK{i}"] = mask_mass.to_numpy()[:, i]
+        datasets[f"INPUTS/Masses/mass{i}"] = mass.to_numpy()[:, i]
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
