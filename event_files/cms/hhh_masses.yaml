@@ -12,7 +12,7 @@
        sinphi: none
        cosphi: none
        btag: none
-       mass: none
+       mass: normalize
    # ---------------------------------------------------------------------
    # REQUIRED - GLOBAL - inputs which will have a single vector per event.
    # ---------------------------------------------------------------------
