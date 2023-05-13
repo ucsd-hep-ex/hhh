@@ -24,6 +24,9 @@ PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
 def get_n_features(name, events, iterator):
+    if name.format(i=iterator[0]) not in dir(events):
+        logging.warning(f"Variable {name.format(i=iterator[0])} does not exist in tree; returning all 0s")
+        return ak.from_numpy(np.zeros((len(events), len(iterator))))
     return ak.concatenate(
         [np.expand_dims(events[name.format(i=i)], axis=-1) for i in iterator],
         axis=-1,
