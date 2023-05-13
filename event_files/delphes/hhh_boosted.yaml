@@ -7,11 +7,24 @@ INPUTS:
   # -----------------------------------------------------------------------------
   SEQUENTIAL:
     Jets:
-      ptcorr: log_normalize
+      ptcorr: none
       eta: normalize
       sinphi: none
       cosphi: none
       btag: none
+      mass: normalize
+    BoostedJets:
+      fj_pt: log_normalize
+      fj_eta: normalize
+      fj_sinphi: none
+      fj_cosphi: none
+      fj_mass: normalize
+      fj_sdmass: normalize
+      fj_nsub: normalize
+      fj_tau21: none
+      fj_tau32: none
+      fj_ptd: none
+      fj_ncharged: normalize
   # ---------------------------------------------------------------------
   # REQUIRED - GLOBAL - inputs which will have a single vector per event.
   # ---------------------------------------------------------------------
@@ -31,13 +44,21 @@ EVENT:
   h3:
     - b1: Jets
     - b2: Jets
+  bh1:
+    - bb: BoostedJets
+  bh2:
+    - bb: BoostedJets
+  bh3:
+    - bb: BoostedJets
 
 # ---------------------------------------------------------
 # REQUIRED KEY - PERMUTATIONS - List of valid permutations.
 # ---------------------------------------------------------
 PERMUTATIONS:
     EVENT:
-      - [ h1, h2, h3 ]
+      - [[h1, h2], [bh1, bh2]]
+      - [[h1, h3], [bh1, bh3]]
+      - [[h2, h3], [bh2, bh3]]
     h1:
       - [ b1, b2 ]
     h2:

@@ -7,19 +7,19 @@ INPUTS:
   # -----------------------------------------------------------------------------
   SEQUENTIAL:
     Jets:
-      ptcorr: none
+      ptcorr: log_normalize
       eta: normalize
       sinphi: none
       cosphi: none
       btag: none
-      mass: none
+      mass: normalize
     BoostedJets:
-      pt: log_normalize
-      eta: normalize
-      sinphi: none
-      cosphi: none
-      xbb: none
-      mass: none
+      fj_pt: log_normalize
+      fj_eta: normalize
+      fj_sinphi: none
+      fj_cosphi: none
+      fj_xbb: none
+      fj_mass: normalize
   # ---------------------------------------------------------------------
   # REQUIRED - GLOBAL - inputs which will have a single vector per event.
   # ---------------------------------------------------------------------
