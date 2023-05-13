@@ -23,7 +23,7 @@
     "skip_connections": true,
     "initial_embedding_skip_connections": true,
     "event_info_file": "event_files/delphes/hhh_boosted.yaml",
-    "training_file": "/hhh-vol/data/delphes/v2/hhh_testing.h5",
+    "training_file": "data/delphes/v2/hhh_training.h5",
     "normalize_features": true,
     "limit_to_num_jets": 0,
     "balance_jets": false,
