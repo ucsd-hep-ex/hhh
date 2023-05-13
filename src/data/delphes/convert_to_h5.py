@@ -32,16 +32,6 @@ def to_np_array(ak_array, max_n=10, pad=0):
     return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad).to_numpy()
 
 
-def get_n_features_v2(arrays, n):
-    result = []
-    for array in arrays:
-        if ak.num(array, axis=0) > n:
-            result.append(array[0:n])
-        else:
-            result.append(array)
-    return ak.Array(result)
-
-
 def get_datasets(arrays):
     part_pid = arrays["Particle/Particle.PID"]  # PDG ID
     part_m1 = arrays["Particle/Particle.M1"]
@@ -149,12 +139,13 @@ def get_datasets(arrays):
     higgs_idx = higgs_idx[sorted][mask_minjets]
     matched_fj_idx = matched_fj_idx[sorted][mask_minjets]
 
-    btag = get_n_features_v2(btag, N_JETS)
-    pt = get_n_features_v2(pt, N_JETS)
-    eta = get_n_features_v2(eta, N_JETS)
-    phi = get_n_features_v2(phi, N_JETS)
-    higgs_idx = get_n_features_v2(higgs_idx, N_JETS)
-    matched_fj_idx = get_n_features_v2(matched_fj_idx, N_JETS)
+    # keep only top N_JETS
+    btag = btag[:, :N_JETS]
+    pt = pt[:, :N_JETS]
+    eta = eta[:, :N_JETS]
+    phi = phi[:, :N_JETS]
+    higgs_idx = higgs_idx[:, :N_JETS]
+    matched_fj_idx = matched_fj_idx[:, :N_JETS]
 
     # sort by btag first, then pt
     sorted_by_fj_pt = ak.argsort(fj_pt, ascending=False, axis=-1)
