@@ -136,6 +136,8 @@ def get_datasets(arrays):
     pt = pt[sorted][mask_minjets]
     eta = eta[sorted][mask_minjets]
     phi = phi[sorted][mask_minjets]
+    mass = mass[sorted][mask_minjets]
+    flavor = flavor[sorted][mask_minjets]
     higgs_idx = higgs_idx[sorted][mask_minjets]
     matched_fj_idx = matched_fj_idx[sorted][mask_minjets]
 
@@ -144,6 +146,8 @@ def get_datasets(arrays):
     pt = pt[:, :N_JETS]
     eta = eta[:, :N_JETS]
     phi = phi[:, :N_JETS]
+    mass = mass[:, :N_JETS]
+    flavor = flavor[:, :N_JETS]
     higgs_idx = higgs_idx[:, :N_JETS]
     matched_fj_idx = matched_fj_idx[:, :N_JETS]
 
@@ -268,13 +272,13 @@ def get_datasets(arrays):
     datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
 
     datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
-    datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy()
+    datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy().reshape(h1_fj_mask.to_numpy().shape)
 
     datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
-    datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy()
+    datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy().reshape(h2_fj_mask.to_numpy().shape)
 
     datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
-    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy()
+    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
 
     return datasets
 
@@ -311,6 +315,8 @@ def main(in_files, out_file, train_frac):
     with h5py.File(out_file, "w") as output:
         for dataset_name, all_data in all_datasets.items():
             concat_data = np.concatenate(all_data, axis=0)
+            logging.info(f"Dataset name: {dataset_name}")
+            logging.info(f"Dataset shape: {concat_data.shape}")
             output.create_dataset(dataset_name, data=concat_data)
 
 
