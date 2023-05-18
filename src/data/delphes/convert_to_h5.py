@@ -129,17 +129,19 @@ def get_datasets(arrays):
 
     # keep events with >= MIN_JETS small-radius jets
     mask_minjets = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
+    mask_minfjets = ak.num(fj_pt[fj_pt > MIN_FJET_PT] >= 1)
+    mask_min = ak.all([mask_minjets, mask_minfjets], axis=-2)
     # sort by btag first, then pt
     sorted_by_pt = ak.argsort(pt, ascending=False, axis=-1)
     sorted = ak.concatenate([sorted_by_pt[btag == 1], sorted_by_pt[btag == 0]], axis=-1)
-    btag = btag[sorted][mask_minjets]
-    pt = pt[sorted][mask_minjets]
-    eta = eta[sorted][mask_minjets]
-    phi = phi[sorted][mask_minjets]
-    mass = mass[sorted][mask_minjets]
-    flavor = flavor[sorted][mask_minjets]
-    higgs_idx = higgs_idx[sorted][mask_minjets]
-    matched_fj_idx = matched_fj_idx[sorted][mask_minjets]
+    btag = btag[sorted][mask_min]
+    pt = pt[sorted][mask_min]
+    eta = eta[sorted][mask_min]
+    phi = phi[sorted][mask_min]
+    mass = mass[sorted][mask_min]
+    flavor = flavor[sorted][mask_min]
+    higgs_idx = higgs_idx[sorted][mask_min]
+    matched_fj_idx = matched_fj_idx[sorted][mask_min]
 
     # keep only top N_JETS
     btag = btag[:, :N_JETS]
@@ -153,23 +155,23 @@ def get_datasets(arrays):
 
     # sort by btag first, then pt
     sorted_by_fj_pt = ak.argsort(fj_pt, ascending=False, axis=-1)
-    fj_pt = fj_pt[sorted_by_fj_pt][mask_minjets]
-    fj_eta = fj_eta[sorted_by_fj_pt][mask_minjets]
-    fj_phi = fj_phi[sorted_by_fj_pt][mask_minjets]
-    fj_mass = fj_mass[sorted_by_fj_pt][mask_minjets]
-    fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_minjets]
-    fj_nsub = fj_nsub[sorted_by_fj_pt][mask_minjets]
-    fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_minjets]
-    fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_minjets]
-    fj_area = fj_area[sorted_by_fj_pt][mask_minjets]
-    fj_charge = fj_charge[sorted_by_fj_pt][mask_minjets]
-    fj_ptd = fj_ptd[sorted_by_fj_pt][mask_minjets]
-    fj_ehadovereem = fj_ehadovereem[sorted_by_fj_pt][mask_minjets]
-    fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_minjets]
-    fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_minjets]
-    fj_nneutral = fj_nneutral[sorted_by_fj_pt][mask_minjets]
-    fj_ncharged = fj_ncharged[sorted_by_fj_pt][mask_minjets]
-    fj_higgs_idx = fj_higgs_idx[sorted_by_fj_pt][mask_minjets]
+    fj_pt = fj_pt[sorted_by_fj_pt][mask_min]
+    fj_eta = fj_eta[sorted_by_fj_pt][mask_min]
+    fj_phi = fj_phi[sorted_by_fj_pt][mask_min]
+    fj_mass = fj_mass[sorted_by_fj_pt][mask_min]
+    fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_min]
+    fj_nsub = fj_nsub[sorted_by_fj_pt][mask_min]
+    fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_min]
+    fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_min]
+    fj_area = fj_area[sorted_by_fj_pt][mask_min]
+    fj_charge = fj_charge[sorted_by_fj_pt][mask_min]
+    fj_ptd = fj_ptd[sorted_by_fj_pt][mask_min]
+    fj_ehadovereem = fj_ehadovereem[sorted_by_fj_pt][mask_min]
+    fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_min]
+    fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_min]
+    fj_nneutral = fj_nneutral[sorted_by_fj_pt][mask_min]
+    fj_ncharged = fj_ncharged[sorted_by_fj_pt][mask_min]
+    fj_higgs_idx = fj_higgs_idx[sorted_by_fj_pt][mask_min]
 
     # keep only top N_FJETS
     fj_pt = fj_pt[:, :N_FJETS]
