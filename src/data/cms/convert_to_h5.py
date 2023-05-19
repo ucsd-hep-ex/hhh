@@ -77,8 +77,6 @@ def get_datasets(events):
     matched_fj_idx = matched_fj_idx[mask]
     inv_mass = inv_mass[mask]
 
-    mass = mass[mask]
-
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
     fj_phi = fj_phi[mask]
