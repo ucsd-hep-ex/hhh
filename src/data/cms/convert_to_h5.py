@@ -44,10 +44,7 @@ def get_datasets(events):
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, range(1, N_JETS + 1))
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, range(1, N_JETS + 1))
     matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, range(1, N_JETS + 1))
-    inv_mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
-
-    # paired masses
-    mass = get_n_features("mass{i}", events, range(N_MASSES))
+    mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
 
     # large-radius jet info
     fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS + 1))
@@ -75,7 +72,6 @@ def get_datasets(events):
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
     matched_fj_idx = matched_fj_idx[mask]
-    inv_mass = inv_mass[mask]
 
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
@@ -161,7 +157,6 @@ def get_datasets(events):
     datasets["INPUTS/Jets/mass"] = mass.to_numpy()
     datasets["INPUTS/Jets/jetid"] = jet_id.to_numpy()
     datasets["INPUTS/Jets/matchedfj"] = matched_fj_idx.to_numpy()
-    datasets["INPUTS/Jets/invmass"] = inv_mass.to_numpy()
 
     datasets["INPUTS/BoostedJets/MASK"] = fj_mask.to_numpy()
     datasets["INPUTS/BoostedJets/fj_pt"] = fj_pt.to_numpy()
