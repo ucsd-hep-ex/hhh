@@ -92,7 +92,6 @@ def get_datasets(events):
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
-    mask_mass = mass > MIN_MASS
 
     # mask to define zero-padded large-radius jets
     fj_mask = fj_pt > MIN_FJET_PT
@@ -178,10 +177,6 @@ def get_datasets(events):
     datasets["INPUTS/BoostedJets/fj_xbb"] = fj_xbb.to_numpy()
     datasets["INPUTS/BoostedJets/fj_xqq"] = fj_xqq.to_numpy()
     datasets["INPUTS/BoostedJets/fj_qcd"] = fj_qcd.to_numpy()
-
-    for i in range(0, N_MASSES):
-        datasets[f"INPUTS/Masses/MASK{i}"] = mask_mass.to_numpy()[:, i]
-        datasets[f"INPUTS/Masses/mass{i}"] = mass.to_numpy()[:, i]
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
