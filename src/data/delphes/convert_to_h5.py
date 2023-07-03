@@ -73,7 +73,6 @@ def get_datasets(arrays):
     # just saving just tau21 and tau32, can save others if useful
     fj_tau21 = fj_taus[..., 1] / fj_taus[..., 0]
     fj_tau32 = fj_taus[..., 2] / fj_taus[..., 1]
-    fj_charge = arrays["FatJet/FatJet.Charge"][mask_hhh6b]
     fj_neutralenergyfrac = arrays["FatJet/FatJet.NeutralEnergyFraction"][mask_hhh6b]
     fj_chargedenergyfrac = arrays["FatJet/FatJet.ChargedEnergyFraction"][mask_hhh6b]
     fj_nneutral = arrays["FatJet/FatJet.NNeutrals"][mask_hhh6b]
@@ -158,7 +157,6 @@ def get_datasets(arrays):
     fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_minjets]
     fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_minjets]
     fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_minjets]
-    fj_charge = fj_charge[sorted_by_fj_pt][mask_minjets]
     fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_minjets]
     fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_minjets]
     fj_nneutral = fj_nneutral[sorted_by_fj_pt][mask_minjets]
@@ -173,7 +171,6 @@ def get_datasets(arrays):
     fj_sdmass = fj_sdmass[:, :N_FJETS]
     fj_tau21 = fj_tau21[:, :N_FJETS]
     fj_tau32 = fj_tau32[:, :N_FJETS]
-    fj_charge = fj_charge[:, :N_FJETS]
     fj_neutralenergyfrac = fj_neutralenergyfrac[:, :N_FJETS]
     fj_chargedenergyfrac = fj_chargedenergyfrac[:, :N_FJETS]
     fj_nneutral = fj_nneutral[:, :N_FJETS]
@@ -258,7 +255,6 @@ def get_datasets(arrays):
     datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(fj_sdmass, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(fj_tau21, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(fj_tau32, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_charge"] = to_np_array(fj_charge, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(fj_neutralenergyfrac, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(fj_chargedenergyfrac, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_nneutral"] = to_np_array(fj_nneutral, max_n=N_FJETS)
