@@ -20,11 +20,12 @@ INPUTS:
       fj_cosphi: none
       fj_mass: normalize
       fj_sdmass: normalize
-      fj_nsub: normalize
       fj_tau21: none
       fj_tau32: none
-      fj_ptd: none
       fj_ncharged: normalize
+      fj_nneutral: normalize
+      fj_chargedenergyfrac: normalize
+      fj_neutralenergyfrac: normalize
   # ---------------------------------------------------------------------
   # REQUIRED - GLOBAL - inputs which will have a single vector per event.
   # ---------------------------------------------------------------------
