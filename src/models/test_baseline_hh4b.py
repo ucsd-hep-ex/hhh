@@ -84,7 +84,7 @@ def main(test_file, event_file):
         axis=0,
     )
 
-# TODO: Not sure if this is correct for di-Higgs
+    # TODO: Not sure if this is correct for di-Higgs
     predictions = [
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
