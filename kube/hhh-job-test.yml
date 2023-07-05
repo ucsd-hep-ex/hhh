@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: hh-job-test-billy-small
+  name: hhh-job-test-billy-small
   labels:
     jobgroup: hhh-job-test
 spec:
@@ -38,7 +38,7 @@ spec:
         args:
           - clone
           - --single-branch
-          - https://github.com/cjmikkels/spanet_hh_test
+          - https://github.com/ucsd-hep-ex/hhh
           - -b
           - main
           - --recurse-submodules
