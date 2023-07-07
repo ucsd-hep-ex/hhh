@@ -104,18 +104,12 @@ def get_datasets(events):
     h2_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 2]
 
     # check/fix small-radius jet truth (ensure max 2 small-radius jets per higgs)
-    check = (
-        np.unique(ak.count(h1_bs, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-    )
+    check = np.unique(ak.count(h1_bs, axis=-1)).to_list() + np.unique(ak.count(h2_bs, axis=-1)).to_list()
     if 3 in check:
         logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
 
     # check/fix large-radius jet truth (ensure max 1 large-radius jet per higgs)
-    fj_check = (
-        np.unique(ak.count(h1_bb, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-    )
+    fj_check = np.unique(ak.count(h1_bb, axis=-1)).to_list() + np.unique(ak.count(h2_bb, axis=-1)).to_list()
     if 2 in fj_check:
         logging.warning("some Higgs bosons match to 2 large-radius jets! Check truth")
 
