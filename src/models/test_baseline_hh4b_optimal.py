@@ -31,13 +31,13 @@ for nj in range(MIN_JETS, N_JETS + 1):
 @click.option("--event-file", default=f"{PROJECT_DIR}/event_files/cms/hhh.yaml", help="Event file")
 def main(test_file, event_file):
     in_file = h5py.File(test_file)
-    
+
     pt = ak.Array(in_file["INPUTS"]["Jets"]["pt"])
     eta = ak.Array(in_file["INPUTS"]["Jets"]["eta"])
     phi = ak.Array(in_file["INPUTS"]["Jets"]["phi"])
     btag = ak.Array(in_file["INPUTS"]["Jets"]["btag"])
     mask = ak.Array(in_file["INPUTS"]["Jets"]["MASK"])
-    
+
     # remove zero-padded jets
     pt = pt[mask]
     eta = eta[mask]
@@ -56,21 +56,21 @@ def main(test_file, event_file):
     )
 
     nj = 4
-    k = 125/120
-    
+    k = 125 / 120
+
     # implement algorithm from p.6 of https://cds.cern.ch/record/2771912/files/HIG-20-005-pas.pdf
     # get array of dijets for each possible higgs combination
     jj = jets[:, JET_ASSIGNMENTS[nj][:, :, 0]] + jets[:, JET_ASSIGNMENTS[nj][:, :, 1]]
     mjj = jj.mass
     mjj_sorted = ak.sort(mjj, ascending=False)
-    
-    # compute \delta d as defined in paper above 
+
+    # compute \delta d as defined in paper above
     # and sort based on distance between first and second \delta d
-    delta_d = np.absolute(mjj_sorted[:, :, 0] - k * mjj_sorted[:, :, 1])/(1 + k**2)
+    delta_d = np.absolute(mjj_sorted[:, :, 0] - k * mjj_sorted[:, :, 1]) / (1 + k**2)
     d_sorted = ak.sort(delta_d, ascending=False)
     d_sep_mask = d_sorted[:, 0] - d_sorted[:, 1] > 30
     chi2_argmin = []
-    
+
     # get array of sum of pt of dijets in their own event CoM frame
     com_pt = jj[:, :, 0].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt + jj[:, :, 1].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt
 
@@ -86,10 +86,10 @@ def main(test_file, event_file):
                 temp_arr[ak.argmax(com_pt[i])] = 0
                 chi2_argmin.append(ak.argmax(temp_arr))
             else:
-                chi2_argmin.append(ak.argmax(com_pt[i], axis=-1))  
-    
+                chi2_argmin.append(ak.argmax(com_pt[i], axis=-1))
+
     print(chi2_argmin[0])
-    
+
     h1_bs = np.concatenate(
         (
             np.array(in_file["TARGETS"]["h1"]["b1"])[:, np.newaxis],
@@ -114,10 +114,7 @@ def main(test_file, event_file):
         axis=0,
     )
 
-    predictions = [
-        JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
-        JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :]
-    ]
+    predictions = [JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :], JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :]]
 
     num_vectors = np.sum(mask, axis=-1).to_numpy()
     lines = 2
