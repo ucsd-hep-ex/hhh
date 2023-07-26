@@ -171,6 +171,25 @@ def get_datasets(arrays):
     fj_ncharged = fj_ncharged[sorted_by_fj_pt][mask_minjets]
     fj_higgs_idx = fj_higgs_idx[sorted_by_fj_pt][mask_minjets]
 
+    # keep only top N_FJETS
+    fj_pt = fj_pt[:, :N_FJETS]
+    fj_eta = fj_eta[:, :N_FJETS]
+    fj_phi = fj_phi[:, :N_FJETS]
+    fj_mass = fj_mass[:, :N_FJETS]
+    fj_sdmass = fj_sdmass[:, :N_FJETS]
+    fj_nsub = fj_nsub[:, :N_FJETS]
+    fj_tau21 = fj_tau21[:, :N_FJETS]
+    fj_tau32 = fj_tau32[:, :N_FJETS]
+    fj_area = fj_area[:, :N_FJETS]
+    fj_charge = fj_charge[:, :N_FJETS]
+    fj_ptd = fj_ptd[:, :N_FJETS]
+    fj_ehadovereem = fj_ehadovereem[:, :N_FJETS]
+    fj_neutralenergyfrac = fj_neutralenergyfrac[:, :N_FJETS]
+    fj_chargedenergyfrac = fj_chargedenergyfrac[:, :N_FJETS]
+    fj_nneutral = fj_nneutral[:, :N_FJETS]
+    fj_ncharged = fj_ncharged[:, :N_FJETS]
+    fj_higgs_idx = fj_higgs_idx[:, :N_FJETS]
+
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
 
