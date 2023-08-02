@@ -91,36 +91,45 @@ def main(test_file, event_file):
     )
     ### chi2 on fjets to find Higgs
     fj_pt = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_pt"])
-    fj_eta = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_eta"])
-    fj_sinphi = ak.Array(in_file["INPUTS"]["BoostedJets"]['fj_sinphi'])
-    fj_cosphi = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_cosphi"])
-    fj_mask = ak.Array(in_file["INPUTS"]["BoostedJets"]["MASK"])
+    # fj_eta = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_eta"])
+    # fj_sinphi = ak.Array(in_file["INPUTS"]["BoostedJets"]['fj_sinphi'])
+    # fj_cosphi = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_cosphi"])
+    # fj_mask = ak.Array(in_file["INPUTS"]["BoostedJets"]["MASK"])
 
     # remove zero-padded jets
-    fj_pt = fj_pt[fj_mask]
-    fj_eta = fj_eta[fj_mask]
-    fj_sinphi = fj_sinphi[fj_mask]
-    fj_cosphi = fj_cosphi[fj_mask]
+    # fj_pt = fj_pt[fj_mask]
+    # fj_eta = fj_eta[fj_mask]
+    # fj_sinphi = fj_sinphi[fj_mask]
+    # fj_cosphi = fj_cosphi[fj_mask]
 
-    fjets = ak.zip(
-        {
-            "fj_pt": fj_pt,
-            "fj_eta": fj_eta,
-            "fj_sinphi": fj_sinphi,
-            "fj_cosphi": fj_cosphi,
-        }
-    )
+    # fjets = ak.zip(
+    #     {
+    #         "fj_pt": fj_pt,
+    #         "fj_eta": fj_eta,
+    #         "fj_sinphi": fj_sinphi,
+    #         "fj_cosphi": fj_cosphi,
+    #     }
+    # )
 
-    ak.count(fj_pt, axis=-1)
+    num_events = ak.count(fj_pt, axis=-1)
+    bh1_b_pred = np.ones(shape=(num_events, 1), dtype=int)
+    bh2_b_pred = np.ones(shape=(num_events, 1), dtype=int)*2
+    bh3_b_pred = np.ones(shape=(num_events, 1), dtype=int)*3
 
+    bh1_b = np.array(in_file["TARGETS"]["bh1"]["bb"])
+    bh2_b = np.array(in_file["TARGETS"]["bh2"]["bb"])
+    bh3_b = np.array(in_file["TARGETS"]["bh3"]["bb"])
 
-    targets = [h1_bs, h2_bs, h3_bs]
+    targets = [h1_bs, h2_bs, h3_bs, bh1_b, bh2_b, bh3_b]
 
     masks = np.concatenate(
         (
             np.array(in_file["TARGETS"]["h1"]["mask"])[np.newaxis, :],
             np.array(in_file["TARGETS"]["h2"]["mask"])[np.newaxis, :],
             np.array(in_file["TARGETS"]["h3"]["mask"])[np.newaxis, :],
+            np.array(in_file["TARGETS"]["bh1"]["mask"])[np.newaxis, :],
+            np.array(in_file["TARGETS"]["bh2"]["mask"])[np.newaxis, :],
+            np.array(in_file["TARGETS"]["bh3"]["mask"])[np.newaxis, :]
         ),
         axis=0,
     )
@@ -129,4 +138,12 @@ def main(test_file, event_file):
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
         JET_ASSIGNMENTS[nj][chi2_argmin][:, 2, :],
+        bh1_b_pred,
+        bh2_b_pred,
+        bh3_b_pred,
     ]
+
+    num_vectors = np.sum(mask, axis=-1).to_numpy()
+    lines = 2
+    results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
+    display_table(results, jet_limits, clusters)
