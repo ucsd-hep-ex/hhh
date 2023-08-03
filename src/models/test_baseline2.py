@@ -115,7 +115,8 @@ def main(test_file, event_file):
     #     }
     # )
 
-    num_events = ak.count(fj_pt, axis=-1)
+    num_events = ak.count(fj_pt, axis=-1)[0]
+    print(num_events)
     bh1_b_pred = np.ones(shape=(num_events, 1), dtype=int)
     bh2_b_pred = np.ones(shape=(num_events, 1), dtype=int)*2
     bh3_b_pred = np.ones(shape=(num_events, 1), dtype=int)*3
