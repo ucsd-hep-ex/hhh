@@ -38,6 +38,7 @@ def main(test_file, event_file):
     eta = ak.Array(in_file["INPUTS"]["Jets"]["eta"])
     sinphi = ak.Array(in_file["INPUTS"]["Jets"]["sinphi"])
     cosphi = ak.Array(in_file["INPUTS"]["Jets"]["cosphi"])
+    phi = np.arcsin(sinphi)
     btag = ak.Array(in_file["INPUTS"]["Jets"]["btag"])
     mass = ak.Array(in_file["INPUTS"]["Jets"]["mass"])
     mask = ak.Array(in_file["INPUTS"]["Jets"]["MASK"])
@@ -47,6 +48,7 @@ def main(test_file, event_file):
     eta = eta[mask]
     sinphi = sinphi[mask]
     cosphi = cosphi[mask]
+    phi = phi[mask]
     btag = btag[mask]
     mass = mass[mask]
 
@@ -56,6 +58,7 @@ def main(test_file, event_file):
             "eta": eta,
             "sinphi": sinphi,
             "cosphi": cosphi,
+            "phi": phi,
             "btag": btag,
             "mass": mass
         },
