@@ -89,7 +89,8 @@ def main(test_file, event_file):
         ),
         axis=-1,
     )
-    ### chi2 on fjets to find Higgs
+
+    # chi2 on fjets to find Higgs
     fj_pt = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_pt"])
     # fj_eta = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_eta"])
     # fj_sinphi = ak.Array(in_file["INPUTS"]["BoostedJets"]['fj_sinphi'])
@@ -147,3 +148,7 @@ def main(test_file, event_file):
     lines = 2
     results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
     display_table(results, jet_limits, clusters)
+
+
+if __name__ == "__main__":
+    main()
