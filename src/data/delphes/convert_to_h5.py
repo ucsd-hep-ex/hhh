@@ -63,9 +63,10 @@ def get_datasets(arrays):
     fj_sdp4 = arrays["FatJet/FatJet.SoftDroppedP4[5]"][mask_hhh6b]
     # first entry (i = 0) is the total SoftDropped Jet 4-momenta
     # from i = 1 to 4 are the pruned subjets 4-momenta
-    fj_sdmass = np.sqrt(
+    fj_sdmass2 = (
         fj_sdp4.fE[..., 0] ** 2 - fj_sdp4.fP.fX[..., 0] ** 2 - fj_sdp4.fP.fY[..., 0] ** 2 - fj_sdp4.fP.fZ[..., 0] ** 2
     )
+    fj_sdmass = np.sqrt(np.maximum(fj_sdmass2, 0))
     fj_nsub = arrays["FatJet/FatJet.NSubJetsSoftDropped"][mask_hhh6b]
     fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hhh6b]
     # just saving just tau21 and tau32, can save others if useful
