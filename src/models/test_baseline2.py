@@ -147,8 +147,8 @@ def main(test_file, event_file):
         bh3_b_pred,
     ]
 
-    num_vectors = np.sum(mask, axis=-1).to_numpy()
-    lines = 2
+    num_vectors = np.sum(mask, axis=-1).to_numpy() # number of unique objects in every event
+    lines = 2 # how many lines are generated in the table
     results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
     display_table(results, jet_limits, clusters)
 
