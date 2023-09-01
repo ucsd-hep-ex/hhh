@@ -69,8 +69,8 @@ def get_datasets(arrays):
     fj_sdmass = np.sqrt(np.maximum(fj_sdmass2, 0))
     fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hhh6b]
     # just saving just tau21 and tau32, can save others if useful
-    fj_tau21 = fj_taus[..., 1] / fj_taus[..., 0]
-    fj_tau32 = fj_taus[..., 2] / fj_taus[..., 1]
+    fj_tau21 = np.nan_to_num(fj_taus[..., 1] / fj_taus[..., 0], nan=-1)
+    fj_tau32 = np.nan_to_num(fj_taus[..., 2] / fj_taus[..., 1], nan=-1)
     fj_charge = arrays["FatJet/FatJet.Charge"][mask_hhh6b]
     fj_ehadovereem = arrays["FatJet/FatJet.EhadOverEem"][mask_hhh6b]
     fj_neutralenergyfrac = arrays["FatJet/FatJet.NeutralEnergyFraction"][mask_hhh6b]
