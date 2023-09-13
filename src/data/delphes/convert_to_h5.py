@@ -184,10 +184,10 @@ def get_datasets(arrays):
     # add H pT info
     H_pt = higgses[mask_minjets].pt
     H_pt = ak.fill_none(ak.pad_none(H_pt, target=3, axis=1, clip=True), -1)
-    
-    h1_pt, bh1_pt = H_pt[:, 0]
-    h2_pt, bh2_pt = H_pt[:, 1]
-    h3_pt, bh3_pt = H_pt[:, 2]
+
+    h1_pt, bh1_pt = H_pt[:, 0], H_pt[:, 0]
+    h2_pt, bh2_pt = H_pt[:, 1], H_pt[:, 1]
+    h3_pt, bh3_pt = H_pt[:, 2], H_pt[:, 2]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
@@ -291,15 +291,15 @@ def get_datasets(arrays):
 
     datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
     datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy().reshape(h1_fj_mask.to_numpy().shape)
-    datasets["TARGETS/bh1/pt"] = h1_pt.to_numpy()
+    datasets["TARGETS/bh1/pt"] = bh1_pt.to_numpy()
 
     datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
     datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy().reshape(h2_fj_mask.to_numpy().shape)
-    datasets["TARGETS/bh2/pt"] = h2_pt.to_numpy()
+    datasets["TARGETS/bh2/pt"] = bh2_pt.to_numpy()
 
     datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
     datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
-    datasets["TARGETS/bh3/pt"] = h3_pt.to_numpy()
+    datasets["TARGETS/bh3/pt"] = bh3_pt.to_numpy()
 
     return datasets
 
