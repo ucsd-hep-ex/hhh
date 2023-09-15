@@ -25,13 +25,12 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 @click.option("--multi-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
 @click.option("--method", default="standard", help="Baseline method to be tested")
 def main(test_file, event_file, n_higgs, method):
-
     # Checks to see if click flags are valid
     if (method != "standard") and (method != "agnostic" or n_higgs != 2):
         raise ValueError("Invalid baseline method selected.")
     if n_higgs != 2 and n_higgs != 3:
         raise ValueError("Invalid number of Higgs bosons selected.")
-    
+
     MIN_JETS = 2 * n_higgs
     # compute possible jet assignments lookup table
     JET_ASSIGNMENTS = {}
@@ -39,7 +38,7 @@ def main(test_file, event_file, n_higgs, method):
         a = list(itertools.combinations(range(nj), 2))
         b = np.array([(i, j, k) for i, j, k in itertools.combinations(a, 3) if len(set(i + j + k)) == MIN_JETS])
         JET_ASSIGNMENTS[nj] = b
-    
+
     in_file = h5py.File(test_file)
 
     pt = ak.Array(in_file["INPUTS"]["Jets"]["pt"])
@@ -72,26 +71,23 @@ def main(test_file, event_file, n_higgs, method):
         chi2 = ak.sum(np.square(mjj - HIGGS_MASS), axis=-1)
         chi2_argmin = ak.argmin(chi2, axis=-1)
     elif method == "agnostic":
-        k = 125/120
-    
+        k = 125 / 120
+
         # implement algorithm from p.6 of https://cds.cern.ch/record/2771912/files/HIG-20-005-pas.pdf
         # get array of dijets for each possible higgs combination
         jj = jets[:, JET_ASSIGNMENTS[nj][:, :, 0]] + jets[:, JET_ASSIGNMENTS[nj][:, :, 1]]
         mjj = jj.mass
         mjj_sorted = ak.sort(mjj, ascending=False)
-        
-        # compute \delta d as defined in paper above 
+
+        # compute \delta d as defined in paper above
         # and sort based on distance between first and second \delta d
-        delta_d = np.absolute(mjj_sorted[:, :, 0] - k * mjj_sorted[:, :, 1])/(1 + k**2)
+        delta_d = np.absolute(mjj_sorted[:, :, 0] - k * mjj_sorted[:, :, 1]) / (1 + k**2)
         d_sorted = ak.sort(delta_d, ascending=False)
         d_sep_mask = d_sorted[:, 0] - d_sorted[:, 1] > 30
         chi2_argmin = []
-        
+
         # get array of sum of pt of dijets in their own event CoM frame
-        com_pt = (
-            jj[:, :, 0].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt 
-            + jj[:, :, 1].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt
-        )
+        com_pt = jj[:, :, 0].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt + jj[:, :, 1].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt
 
         # if \delta d separation is large, take event with smallest \delta d
         # otherwise, take dijet combination with highest sum pt in their CoM frame
@@ -106,7 +102,6 @@ def main(test_file, event_file, n_higgs, method):
                     chi2_argmin.append(ak.argmax(temp_arr))
                 else:
                     chi2_argmin.append(ak.argmax(com_pt[i], axis=-1))
-                    
 
     h1_bs = np.concatenate(
         (
@@ -161,8 +156,6 @@ def main(test_file, event_file, n_higgs, method):
             JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
             JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
         ]
-
-    
 
     num_vectors = np.sum(mask, axis=-1).to_numpy()
     lines = 2

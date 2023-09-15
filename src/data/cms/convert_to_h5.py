@@ -122,13 +122,10 @@ def get_datasets(events, n_higgs):
             + np.unique(ak.count(h3_bs, axis=-1)).to_list()
         )
     elif n_higgs == 2:
-        check = (
-            np.unique(ak.count(h1_bs, axis=-1)).to_list()
-            + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-        )
+        check = np.unique(ak.count(h1_bs, axis=-1)).to_list() + np.unique(ak.count(h2_bs, axis=-1)).to_list()
     else:
         check = ()
-    
+
     if 3 in check:
         logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
 
@@ -140,10 +137,7 @@ def get_datasets(events, n_higgs):
             + np.unique(ak.count(h3_bb, axis=-1)).to_list()
         )
     elif n_higgs == 2:
-        fj_check = (
-            np.unique(ak.count(h1_bb, axis=-1)).to_list()
-            + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-        )
+        fj_check = np.unique(ak.count(h1_bb, axis=-1)).to_list() + np.unique(ak.count(h2_bb, axis=-1)).to_list()
     else:
         fj_check = ()
 
@@ -242,7 +236,6 @@ def get_datasets(events, n_higgs):
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
 @click.option("--multi-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
 def main(in_files, out_file, train_frac, n_higgs):
-
     N_FJETS = n_higgs
     MIN_JETS = 2 * n_higgs
 
