@@ -63,18 +63,15 @@ def get_datasets(arrays, n_higgs):
     fj_sdp4 = arrays["FatJet/FatJet.SoftDroppedP4[5]"][mask_hhh6b]
     # first entry (i = 0) is the total SoftDropped Jet 4-momenta
     # from i = 1 to 4 are the pruned subjets 4-momenta
-    fj_sdmass = np.sqrt(
+    fj_sdmass2 = (
         fj_sdp4.fE[..., 0] ** 2 - fj_sdp4.fP.fX[..., 0] ** 2 - fj_sdp4.fP.fY[..., 0] ** 2 - fj_sdp4.fP.fZ[..., 0] ** 2
     )
-    fj_nsub = arrays["FatJet/FatJet.NSubJetsSoftDropped"][mask_hhh6b]
+    fj_sdmass = np.sqrt(np.maximum(fj_sdmass2, 0))
     fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hhh6b]
     # just saving just tau21 and tau32, can save others if useful
-    fj_tau21 = fj_taus[..., 1] / fj_taus[..., 0]
-    fj_tau32 = fj_taus[..., 2] / fj_taus[..., 1]
-    fj_areap4 = arrays["FatJet/FatJet.Area"][mask_hhh6b]
-    fj_area = np.hypot(fj_areap4.fP.fX, fj_areap4.fP.fY)
+    fj_tau21 = np.nan_to_num(fj_taus[..., 1] / fj_taus[..., 0], nan=-1)
+    fj_tau32 = np.nan_to_num(fj_taus[..., 2] / fj_taus[..., 1], nan=-1)
     fj_charge = arrays["FatJet/FatJet.Charge"][mask_hhh6b]
-    fj_ptd = arrays["FatJet/FatJet.PTD"][mask_hhh6b]
     fj_ehadovereem = arrays["FatJet/FatJet.EhadOverEem"][mask_hhh6b]
     fj_neutralenergyfrac = arrays["FatJet/FatJet.NeutralEnergyFraction"][mask_hhh6b]
     fj_chargedenergyfrac = arrays["FatJet/FatJet.ChargedEnergyFraction"][mask_hhh6b]
@@ -158,18 +155,31 @@ def get_datasets(arrays, n_higgs):
     fj_phi = fj_phi[sorted_by_fj_pt][mask_minjets]
     fj_mass = fj_mass[sorted_by_fj_pt][mask_minjets]
     fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_minjets]
-    fj_nsub = fj_nsub[sorted_by_fj_pt][mask_minjets]
     fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_minjets]
     fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_minjets]
-    fj_area = fj_area[sorted_by_fj_pt][mask_minjets]
     fj_charge = fj_charge[sorted_by_fj_pt][mask_minjets]
-    fj_ptd = fj_ptd[sorted_by_fj_pt][mask_minjets]
     fj_ehadovereem = fj_ehadovereem[sorted_by_fj_pt][mask_minjets]
     fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_minjets]
     fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_minjets]
     fj_nneutral = fj_nneutral[sorted_by_fj_pt][mask_minjets]
     fj_ncharged = fj_ncharged[sorted_by_fj_pt][mask_minjets]
     fj_higgs_idx = fj_higgs_idx[sorted_by_fj_pt][mask_minjets]
+
+    # keep only top N_FJETS
+    fj_pt = fj_pt[:, :N_FJETS]
+    fj_eta = fj_eta[:, :N_FJETS]
+    fj_phi = fj_phi[:, :N_FJETS]
+    fj_mass = fj_mass[:, :N_FJETS]
+    fj_sdmass = fj_sdmass[:, :N_FJETS]
+    fj_tau21 = fj_tau21[:, :N_FJETS]
+    fj_tau32 = fj_tau32[:, :N_FJETS]
+    fj_charge = fj_charge[:, :N_FJETS]
+    fj_ehadovereem = fj_ehadovereem[:, :N_FJETS]
+    fj_neutralenergyfrac = fj_neutralenergyfrac[:, :N_FJETS]
+    fj_chargedenergyfrac = fj_chargedenergyfrac[:, :N_FJETS]
+    fj_nneutral = fj_nneutral[:, :N_FJETS]
+    fj_ncharged = fj_ncharged[:, :N_FJETS]
+    fj_higgs_idx = fj_higgs_idx[:, :N_FJETS]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
@@ -268,12 +278,9 @@ def get_datasets(arrays, n_higgs):
     datasets["INPUTS/BoostedJets/fj_cosphi"] = to_np_array(np.cos(fj_phi), max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_mass"] = to_np_array(fj_mass, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(fj_sdmass, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_nsub"] = to_np_array(fj_nsub, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(fj_tau21, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(fj_tau32, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_area"] = to_np_array(fj_area, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_charge"] = to_np_array(fj_charge, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_ptd"] = to_np_array(fj_ptd, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_ehadovereem"] = to_np_array(fj_ehadovereem, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(fj_neutralenergyfrac, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(fj_chargedenergyfrac, max_n=N_FJETS)

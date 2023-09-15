@@ -44,7 +44,10 @@ def get_datasets(events, n_higgs):
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, range(1, N_JETS + 1))
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, range(1, N_JETS + 1))
     matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, range(1, N_JETS + 1))
-    mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
+    inv_mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
+
+    # paired masses
+    mass = get_n_features("mass{i}", events, range(N_MASSES))
 
     # large-radius jet info
     fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS + 1))
@@ -72,6 +75,9 @@ def get_datasets(events, n_higgs):
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
     matched_fj_idx = matched_fj_idx[mask]
+    inv_mass = inv_mass[mask]
+
+    mass = mass[mask]
 
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
@@ -88,6 +94,7 @@ def get_datasets(events, n_higgs):
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
+    mask_mass = mass > MIN_MASS
 
     # mask to define zero-padded large-radius jets
     fj_mask = fj_pt > MIN_FJET_PT
@@ -182,6 +189,7 @@ def get_datasets(events, n_higgs):
     datasets["INPUTS/Jets/mass"] = mass.to_numpy()
     datasets["INPUTS/Jets/jetid"] = jet_id.to_numpy()
     datasets["INPUTS/Jets/matchedfj"] = matched_fj_idx.to_numpy()
+    datasets["INPUTS/Jets/invmass"] = inv_mass.to_numpy()
 
     datasets["INPUTS/BoostedJets/MASK"] = fj_mask.to_numpy()
     datasets["INPUTS/BoostedJets/fj_pt"] = fj_pt.to_numpy()
@@ -197,6 +205,10 @@ def get_datasets(events, n_higgs):
     datasets["INPUTS/BoostedJets/fj_xbb"] = fj_xbb.to_numpy()
     datasets["INPUTS/BoostedJets/fj_xqq"] = fj_xqq.to_numpy()
     datasets["INPUTS/BoostedJets/fj_qcd"] = fj_qcd.to_numpy()
+
+    for i in range(0, N_MASSES):
+        datasets[f"INPUTS/Masses/MASK{i}"] = mask_mass.to_numpy()[:, i]
+        datasets[f"INPUTS/Masses/mass{i}"] = mass.to_numpy()[:, i]
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
