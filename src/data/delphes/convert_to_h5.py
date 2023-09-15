@@ -67,15 +67,11 @@ def get_datasets(arrays):
         fj_sdp4.fE[..., 0] ** 2 - fj_sdp4.fP.fX[..., 0] ** 2 - fj_sdp4.fP.fY[..., 0] ** 2 - fj_sdp4.fP.fZ[..., 0] ** 2
     )
     fj_sdmass = np.sqrt(np.maximum(fj_sdmass2, 0))
-    fj_nsub = arrays["FatJet/FatJet.NSubJetsSoftDropped"][mask_hhh6b]
     fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hhh6b]
     # just saving just tau21 and tau32, can save others if useful
-    fj_tau21 = fj_taus[..., 1] / fj_taus[..., 0]
-    fj_tau32 = fj_taus[..., 2] / fj_taus[..., 1]
-    fj_areap4 = arrays["FatJet/FatJet.Area"][mask_hhh6b]
-    fj_area = np.hypot(fj_areap4.fP.fX, fj_areap4.fP.fY)
+    fj_tau21 = np.nan_to_num(fj_taus[..., 1] / fj_taus[..., 0], nan=-1)
+    fj_tau32 = np.nan_to_num(fj_taus[..., 2] / fj_taus[..., 1], nan=-1)
     fj_charge = arrays["FatJet/FatJet.Charge"][mask_hhh6b]
-    fj_ptd = arrays["FatJet/FatJet.PTD"][mask_hhh6b]
     fj_ehadovereem = arrays["FatJet/FatJet.EhadOverEem"][mask_hhh6b]
     fj_neutralenergyfrac = arrays["FatJet/FatJet.NeutralEnergyFraction"][mask_hhh6b]
     fj_chargedenergyfrac = arrays["FatJet/FatJet.ChargedEnergyFraction"][mask_hhh6b]
@@ -159,12 +155,9 @@ def get_datasets(arrays):
     fj_phi = fj_phi[sorted_by_fj_pt][mask_minjets]
     fj_mass = fj_mass[sorted_by_fj_pt][mask_minjets]
     fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_minjets]
-    fj_nsub = fj_nsub[sorted_by_fj_pt][mask_minjets]
     fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_minjets]
     fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_minjets]
-    fj_area = fj_area[sorted_by_fj_pt][mask_minjets]
     fj_charge = fj_charge[sorted_by_fj_pt][mask_minjets]
-    fj_ptd = fj_ptd[sorted_by_fj_pt][mask_minjets]
     fj_ehadovereem = fj_ehadovereem[sorted_by_fj_pt][mask_minjets]
     fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_minjets]
     fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_minjets]
@@ -178,12 +171,9 @@ def get_datasets(arrays):
     fj_phi = fj_phi[:, :N_FJETS]
     fj_mass = fj_mass[:, :N_FJETS]
     fj_sdmass = fj_sdmass[:, :N_FJETS]
-    fj_nsub = fj_nsub[:, :N_FJETS]
     fj_tau21 = fj_tau21[:, :N_FJETS]
     fj_tau32 = fj_tau32[:, :N_FJETS]
-    fj_area = fj_area[:, :N_FJETS]
     fj_charge = fj_charge[:, :N_FJETS]
-    fj_ptd = fj_ptd[:, :N_FJETS]
     fj_ehadovereem = fj_ehadovereem[:, :N_FJETS]
     fj_neutralenergyfrac = fj_neutralenergyfrac[:, :N_FJETS]
     fj_chargedenergyfrac = fj_chargedenergyfrac[:, :N_FJETS]
@@ -267,12 +257,9 @@ def get_datasets(arrays):
     datasets["INPUTS/BoostedJets/fj_cosphi"] = to_np_array(np.cos(fj_phi), max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_mass"] = to_np_array(fj_mass, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(fj_sdmass, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_nsub"] = to_np_array(fj_nsub, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(fj_tau21, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(fj_tau32, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_area"] = to_np_array(fj_area, max_n=N_FJETS).astype("float32")
     datasets["INPUTS/BoostedJets/fj_charge"] = to_np_array(fj_charge, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_ptd"] = to_np_array(fj_ptd, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_ehadovereem"] = to_np_array(fj_ehadovereem, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(fj_neutralenergyfrac, max_n=N_FJETS)
     datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(fj_chargedenergyfrac, max_n=N_FJETS)
