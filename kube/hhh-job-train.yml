@@ -22,7 +22,7 @@ spec:
             - -n
             - "v12_output"
             - --epochs
-            - "2000"
+            - "1"
           volumeMounts:
             - name: dshm
               mountPath: /dev/shm

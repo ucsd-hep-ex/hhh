@@ -9,7 +9,7 @@ import numpy as np
 import vector
 from spanet.test import display_table, evaluate_predictions
 
-from src.data.cms.convert_to_h5 import MIN_JETS, N_JETS
+from src.data.cms.convert_to_h5 import N_JETS
 
 vector.register_awkward()
 
@@ -17,18 +17,29 @@ logging.basicConfig(level=logging.INFO)
 
 HIGGS_MASS = 125.0
 PROJECT_DIR = Path(__file__).resolve().parents[2]
-# precompute possible jet assignments lookup table
-JET_ASSIGNMENTS = {}
-for nj in range(MIN_JETS, N_JETS + 1):
-    a = list(itertools.combinations(range(nj), 2))
-    b = np.array([(i, j, k) for i, j, k in itertools.combinations(a, 3) if len(set(i + j + k)) == MIN_JETS])
-    JET_ASSIGNMENTS[nj] = b
 
 
 @click.command()
 @click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
 @click.option("--event-file", default=f"{PROJECT_DIR}/event_files/cms/hhh.yaml", help="Event file")
-def main(test_file, event_file):
+@click.option("--multi-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
+@click.option("--method", default="standard", help="Baseline method to be tested")
+def main(test_file, event_file, n_higgs, method):
+
+    # Checks to see if click flags are valid
+    if (method != "standard") and (method != "agnostic" or n_higgs != 2):
+        raise ValueError("Invalid baseline method selected.")
+    if n_higgs != 2 and n_higgs != 3:
+        raise ValueError("Invalid number of Higgs bosons selected.")
+    
+    MIN_JETS = 2 * n_higgs
+    # compute possible jet assignments lookup table
+    JET_ASSIGNMENTS = {}
+    for nj in range(MIN_JETS, N_JETS + 1):
+        a = list(itertools.combinations(range(nj), 2))
+        b = np.array([(i, j, k) for i, j, k in itertools.combinations(a, 3) if len(set(i + j + k)) == MIN_JETS])
+        JET_ASSIGNMENTS[nj] = b
+    
     in_file = h5py.File(test_file)
 
     pt = ak.Array(in_file["INPUTS"]["Jets"]["pt"])
@@ -55,10 +66,47 @@ def main(test_file, event_file):
     )
 
     # just consider top-6 jets
-    nj = 6
-    mjj = (jets[:, JET_ASSIGNMENTS[nj][:, :, 0]] + jets[:, JET_ASSIGNMENTS[nj][:, :, 1]]).mass
-    chi2 = ak.sum(np.square(mjj - HIGGS_MASS), axis=-1)
-    chi2_argmin = ak.argmin(chi2, axis=-1)
+    nj = 2 * n_higgs
+    if method == "standard":
+        mjj = (jets[:, JET_ASSIGNMENTS[nj][:, :, 0]] + jets[:, JET_ASSIGNMENTS[nj][:, :, 1]]).mass
+        chi2 = ak.sum(np.square(mjj - HIGGS_MASS), axis=-1)
+        chi2_argmin = ak.argmin(chi2, axis=-1)
+    elif method == "agnostic":
+        k = 125/120
+    
+        # implement algorithm from p.6 of https://cds.cern.ch/record/2771912/files/HIG-20-005-pas.pdf
+        # get array of dijets for each possible higgs combination
+        jj = jets[:, JET_ASSIGNMENTS[nj][:, :, 0]] + jets[:, JET_ASSIGNMENTS[nj][:, :, 1]]
+        mjj = jj.mass
+        mjj_sorted = ak.sort(mjj, ascending=False)
+        
+        # compute \delta d as defined in paper above 
+        # and sort based on distance between first and second \delta d
+        delta_d = np.absolute(mjj_sorted[:, :, 0] - k * mjj_sorted[:, :, 1])/(1 + k**2)
+        d_sorted = ak.sort(delta_d, ascending=False)
+        d_sep_mask = d_sorted[:, 0] - d_sorted[:, 1] > 30
+        chi2_argmin = []
+        
+        # get array of sum of pt of dijets in their own event CoM frame
+        com_pt = (
+            jj[:, :, 0].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt 
+            + jj[:, :, 1].boostCM_of(jj[:, :, 0] + jj[:, :, 1]).pt
+        )
+
+        # if \delta d separation is large, take event with smallest \delta d
+        # otherwise, take dijet combination with highest sum pt in their CoM frame
+        # that isn't the lowest \delta d separation
+        for i in range(len(d_sep_mask)):
+            if d_sep_mask[i]:
+                chi2_argmin.append(ak.argmin(delta_d[i], axis=-1))
+            else:
+                if ak.argmin(delta_d[i], axis=-1) == ak.argmax(com_pt[i], axis=-1):
+                    temp_arr = ak.to_numpy(com_pt[i])
+                    temp_arr[ak.argmax(com_pt[i])] = 0
+                    chi2_argmin.append(ak.argmax(temp_arr))
+                else:
+                    chi2_argmin.append(ak.argmax(com_pt[i], axis=-1))
+                    
 
     h1_bs = np.concatenate(
         (
@@ -74,29 +122,47 @@ def main(test_file, event_file):
         ),
         axis=-1,
     )
-    h3_bs = np.concatenate(
-        (
-            np.array(in_file["TARGETS"]["h3"]["b1"])[:, np.newaxis],
-            np.array(in_file["TARGETS"]["h3"]["b2"])[:, np.newaxis],
-        ),
-        axis=-1,
-    )
-    targets = [h1_bs, h2_bs, h3_bs]
+    if n_higgs == 3:
+        h3_bs = np.concatenate(
+            (
+                np.array(in_file["TARGETS"]["h3"]["b1"])[:, np.newaxis],
+                np.array(in_file["TARGETS"]["h3"]["b2"])[:, np.newaxis],
+            ),
+            axis=-1,
+        )
+        targets = [h1_bs, h2_bs, h3_bs]
 
-    masks = np.concatenate(
-        (
-            np.array(in_file["TARGETS"]["h1"]["mask"])[np.newaxis, :],
-            np.array(in_file["TARGETS"]["h2"]["mask"])[np.newaxis, :],
-            np.array(in_file["TARGETS"]["h3"]["mask"])[np.newaxis, :],
-        ),
-        axis=0,
-    )
+        masks = np.concatenate(
+            (
+                np.array(in_file["TARGETS"]["h1"]["mask"])[np.newaxis, :],
+                np.array(in_file["TARGETS"]["h2"]["mask"])[np.newaxis, :],
+                np.array(in_file["TARGETS"]["h3"]["mask"])[np.newaxis, :],
+            ),
+            axis=0,
+        )
 
-    predictions = [
-        JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
-        JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
-        JET_ASSIGNMENTS[nj][chi2_argmin][:, 2, :],
-    ]
+        predictions = [
+            JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
+            JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
+            JET_ASSIGNMENTS[nj][chi2_argmin][:, 2, :],
+        ]
+    else:
+        targets = [h1_bs, h2_bs]
+
+        masks = np.concatenate(
+            (
+                np.array(in_file["TARGETS"]["h1"]["mask"])[np.newaxis, :],
+                np.array(in_file["TARGETS"]["h2"]["mask"])[np.newaxis, :],
+            ),
+            axis=0,
+        )
+
+        predictions = [
+            JET_ASSIGNMENTS[nj][chi2_argmin][:, 0, :],
+            JET_ASSIGNMENTS[nj][chi2_argmin][:, 1, :],
+        ]
+
+    
 
     num_vectors = np.sum(mask, axis=-1).to_numpy()
     lines = 2
