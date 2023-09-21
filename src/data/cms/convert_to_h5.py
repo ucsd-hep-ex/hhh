@@ -71,7 +71,6 @@ def get_datasets(events):
     higgs_idx = higgs_idx[mask]
     hadron_flavor = hadron_flavor[mask]
     matched_fj_idx = matched_fj_idx[mask]
-    mass = mass[mask]
 
     fj_pt = fj_pt[mask]
     fj_eta = fj_eta[mask]
