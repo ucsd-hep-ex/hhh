@@ -32,8 +32,8 @@ FJET_ASSIGNMENTS = {}
 @click.option("--event-file", default=f"{PROJECT_DIR}/event_files/cms/hhh.yaml", help="Event file")
 def main(test_file, event_file):
     in_file = h5py.File(test_file)
-    
-    ### chi2 on jets to find Higgs
+    # chi2 on jets to find Higgs
+
     pt = ak.Array(in_file["INPUTS"]["Jets"]["pt"])
     eta = ak.Array(in_file["INPUTS"]["Jets"]["eta"])
     sinphi = ak.Array(in_file["INPUTS"]["Jets"]["sinphi"])
