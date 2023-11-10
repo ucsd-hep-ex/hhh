@@ -113,10 +113,15 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
         # for each predicted fatjet, check if the targets have a t fatject same with the p fatjet
         for bb_p in bb_p_event:
             match = 0
+            matched_bb_t = -1
             for bb_t in bb_t_event:
                 if bb_p == bb_t+10:
                     match = 1
-            bh_effs.append([fj_pt_event[bb_t], match])
+                    matched_bb_t = bb_t
+            if match>0:
+                bh_effs.append([fj_pt_event[matched_bb_t], match])
+            else:
+                bh_effs.append([fj_pt_event[bb_p-10], 0])
     bh_effs = np.array(bh_effs)
 
     # set x axis (pT) of the scattered points
