@@ -1,4 +1,3 @@
-
 import itertools
 import logging
 from pathlib import Path
@@ -10,7 +9,7 @@ import numpy as np
 import vector
 from spanet.test import display_table, evaluate_predictions
 
-from src.data.cms.convert_to_h5 import MIN_JETS, N_JETS, N_FJETS
+from src.data.cms.convert_to_h5 import MIN_JETS, N_FJETS, N_JETS
 
 vector.register_awkward()
 
@@ -26,6 +25,7 @@ for nj in range(MIN_JETS, N_JETS + 1):
     JET_ASSIGNMENTS[nj] = b
 
 FJET_ASSIGNMENTS = {}
+
 
 @click.command()
 @click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
@@ -53,15 +53,7 @@ def main(test_file, event_file):
     mass = mass[mask]
 
     jets = ak.zip(
-        {
-            "pt": pt,
-            "eta": eta,
-            "sinphi": sinphi,
-            "cosphi": cosphi,
-            "phi": phi,
-            "btag": btag,
-            "mass": mass
-        },
+        {"pt": pt, "eta": eta, "sinphi": sinphi, "cosphi": cosphi, "phi": phi, "btag": btag, "mass": mass},
         with_name="Momentum4D",
     )
 
@@ -115,10 +107,10 @@ def main(test_file, event_file):
     #     }
     # )
 
-    num_events = len(fj_pt) 
+    num_events = len(fj_pt)
     bh1_b_pred = np.ones(shape=(num_events, 1), dtype=int)
-    bh2_b_pred = np.ones(shape=(num_events, 1), dtype=int)*2
-    bh3_b_pred = np.ones(shape=(num_events, 1), dtype=int)*3
+    bh2_b_pred = np.ones(shape=(num_events, 1), dtype=int) * 2
+    bh3_b_pred = np.ones(shape=(num_events, 1), dtype=int) * 3
 
     bh1_b = np.array(in_file["TARGETS"]["bh1"]["bb"])
     bh2_b = np.array(in_file["TARGETS"]["bh2"]["bb"])
@@ -133,7 +125,7 @@ def main(test_file, event_file):
             np.array(in_file["TARGETS"]["h3"]["mask"])[np.newaxis, :],
             np.array(in_file["TARGETS"]["bh1"]["mask"])[np.newaxis, :],
             np.array(in_file["TARGETS"]["bh2"]["mask"])[np.newaxis, :],
-            np.array(in_file["TARGETS"]["bh3"]["mask"])[np.newaxis, :]
+            np.array(in_file["TARGETS"]["bh3"]["mask"])[np.newaxis, :],
         ),
         axis=0,
     )
@@ -147,8 +139,8 @@ def main(test_file, event_file):
         bh3_b_pred,
     ]
 
-    num_vectors = np.sum(mask, axis=-1).to_numpy() # number of unique objects in every event
-    lines = 2 # how many lines are generated in the table
+    num_vectors = np.sum(mask, axis=-1).to_numpy()  # number of unique objects in every event
+    lines = 2  # how many lines are generated in the table
     results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
     display_table(results, jet_limits, clusters)
 
