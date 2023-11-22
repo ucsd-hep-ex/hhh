@@ -14,18 +14,18 @@ vector.register_awkward()
 logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
-N_FJETS = 3
 N_MASSES = 45
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
-MIN_JETS = 6
 MIN_MASS = 50
 PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
 def get_n_features(name, events, iterator):
     if name.format(i=iterator[0]) not in dir(events):
-        logging.warning(f"Variable {name.format(i=iterator[0])} does not exist in tree; returning all 0s")
+        logging.warning(
+            f"Variable {name.format(i=iterator[0])} does not exist in tree; returning all 0s"
+        )
         return ak.from_numpy(np.zeros((len(events), len(iterator))))
     return ak.concatenate(
         [np.expand_dims(events[name.format(i=i)], axis=-1) for i in iterator],
@@ -43,28 +43,34 @@ def get_datasets(events, n_higgs):
     jet_id = get_n_features("jet{i}JetId", events, range(1, N_JETS + 1))
     higgs_idx = get_n_features("jet{i}HiggsMatchedIndex", events, range(1, N_JETS + 1))
     hadron_flavor = get_n_features("jet{i}HadronFlavour", events, range(1, N_JETS + 1))
-    matched_fj_idx = get_n_features("jet{i}FatJetMatchedIndex", events, range(1, N_JETS + 1))
+    matched_fj_idx = get_n_features(
+        "jet{i}FatJetMatchedIndex", events, range(1, N_JETS + 1)
+    )
     inv_mass = get_n_features("jet{i}Mass", events, range(1, N_JETS + 1))
 
     # paired masses
     mass = get_n_features("mass{i}", events, range(N_MASSES))
 
     # large-radius jet info
-    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS + 1))
-    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, N_FJETS + 1))
-    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, N_FJETS + 1))
-    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, N_FJETS + 1))
-    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, N_FJETS + 1))
-    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, N_FJETS + 1))
-    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, N_FJETS + 1))
-    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, N_FJETS + 1))
-    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, N_FJETS + 1))
-    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, N_FJETS + 1))
-    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, N_FJETS + 1))
-    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, range(1, N_FJETS + 1))
+    n_fjets = n_higgs
+    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, n_fjets + 1))
+    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, n_fjets + 1))
+    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, n_fjets + 1))
+    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, n_fjets + 1))
+    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, n_fjets + 1))
+    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, n_fjets + 1))
+    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, n_fjets + 1))
+    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, n_fjets + 1))
+    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, n_fjets + 1))
+    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, n_fjets + 1))
+    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, n_fjets + 1))
+    fj_higgs_idx = get_n_features(
+        "fatJet{i}HiggsMatchedIndex", events, range(1, n_fjets + 1)
+    )
 
-    # keep events with >= MIN_JETS small-radius jets
-    mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
+    # keep events with >= min_jets small-radius jets
+    min_jets = 2 * n_higgs
+    mask = ak.num(pt[pt > MIN_JET_PT]) >= min_jets
     pt = pt[mask]
     ptcorr = ptcorr[mask]
     eta = eta[mask]
@@ -115,31 +121,23 @@ def get_datasets(events, n_higgs):
         h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
 
     # check/fix small-radius jet truth (ensure max 2 small-radius jets per higgs)
+    check = (
+        np.unique(ak.count(h1_bs, axis=-1)).to_list()
+        + np.unique(ak.count(h2_bs, axis=-1)).to_list()
+    )
     if n_higgs == 3:
-        check = (
-            np.unique(ak.count(h1_bs, axis=-1)).to_list()
-            + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-            + np.unique(ak.count(h3_bs, axis=-1)).to_list()
-        )
-    elif n_higgs == 2:
-        check = np.unique(ak.count(h1_bs, axis=-1)).to_list() + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-    else:
-        check = ()
+        check += np.unique(ak.count(h3_bs, axis=-1)).to_list()
 
     if 3 in check:
         logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
 
     # check/fix large-radius jet truth (ensure max 1 large-radius jet per higgs)
+    fj_check = (
+        np.unique(ak.count(h1_bb, axis=-1)).to_list()
+        + np.unique(ak.count(h2_bb, axis=-1)).to_list()
+    )
     if n_higgs == 3:
-        fj_check = (
-            np.unique(ak.count(h1_bb, axis=-1)).to_list()
-            + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-            + np.unique(ak.count(h3_bb, axis=-1)).to_list()
-        )
-    elif n_higgs == 2:
-        fj_check = np.unique(ak.count(h1_bb, axis=-1)).to_list() + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-    else:
-        fj_check = ()
+        fj_check += np.unique(ak.count(h3_bb, axis=-1)).to_list()
 
     if 2 in fj_check:
         logging.warning("some Higgs bosons match to 2 large-radius jets! Check truth")
@@ -225,20 +223,23 @@ def get_datasets(events, n_higgs):
 
     if n_higgs == 3:
         datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
-        datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
+        datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(
+            h3_fj_mask.to_numpy().shape
+        )
 
     return datasets
 
 
 @click.command()
 @click.argument("in-files", nargs=-1)
-@click.option("--out-file", default=f"{PROJECT_DIR}/data/cms/hhh_training.h5", help="Output file.")
+@click.option(
+    "--out-file", default=f"{PROJECT_DIR}/data/cms/hhh_training.h5", help="Output file."
+)
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
-@click.option("--multi-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
+@click.option(
+    "--n-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event"
+)
 def main(in_files, out_file, train_frac, n_higgs):
-    N_FJETS = n_higgs
-    MIN_JETS = 2 * n_higgs
-
     all_datasets = {}
     for file_name in in_files:
         with uproot.open(file_name) as in_file:
