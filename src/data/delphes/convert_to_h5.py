@@ -27,9 +27,7 @@ PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
 def to_np_array(ak_array, max_n=10, pad=0):
-    return ak.fill_none(
-        ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad
-    ).to_numpy()
+    return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad).to_numpy()
 
 
 def get_datasets(arrays, n_higgs):
@@ -64,10 +62,7 @@ def get_datasets(arrays, n_higgs):
     # first entry (i = 0) is the total SoftDropped Jet 4-momenta
     # from i = 1 to 4 are the pruned subjets 4-momenta
     fj_sdmass2 = (
-        fj_sdp4.fE[..., 0] ** 2
-        - fj_sdp4.fP.fX[..., 0] ** 2
-        - fj_sdp4.fP.fY[..., 0] ** 2
-        - fj_sdp4.fP.fZ[..., 0] ** 2
+        fj_sdp4.fE[..., 0] ** 2 - fj_sdp4.fP.fX[..., 0] ** 2 - fj_sdp4.fP.fY[..., 0] ** 2 - fj_sdp4.fP.fZ[..., 0] ** 2
     )
     fj_sdmass = np.sqrt(np.maximum(fj_sdmass2, 0))
     fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hbb]
@@ -95,13 +90,9 @@ def get_datasets(arrays, n_higgs):
         with_name="Momentum4D",
     )
 
-    higgs_condition = np.logical_and(
-        particles.pid == 25, np.abs(particles.pid[particles.d1]) == 5
-    )
+    higgs_condition = np.logical_and(particles.pid == 25, np.abs(particles.pid[particles.d1]) == 5)
     higgses = ak.to_regular(particles[higgs_condition], axis=1)
-    bquark_condition = np.logical_and(
-        np.abs(particles.pid) == 5, particles.pid[particles.m1] == 25
-    )
+    bquark_condition = np.logical_and(np.abs(particles.pid) == 5, particles.pid[particles.m1] == 25)
     bquarks = ak.to_regular(particles[bquark_condition], axis=1)
 
     jets = ak.zip(
@@ -129,9 +120,7 @@ def get_datasets(arrays, n_higgs):
 
     higgs_idx = match_higgs_to_jet(higgses, bquarks, jets, ak.ArrayBuilder()).snapshot()
     matched_fj_idx = match_fjet_to_jet(fjets, jets, ak.ArrayBuilder()).snapshot()
-    fj_higgs_idx = match_higgs_to_fjet(
-        higgses, bquarks, fjets, ak.ArrayBuilder()
-    ).snapshot()
+    fj_higgs_idx = match_higgs_to_fjet(higgses, bquarks, fjets, ak.ArrayBuilder()).snapshot()
 
     # keep events with >= min_jets small-radius jets
     min_jets = 2 * n_higgs
@@ -211,10 +200,7 @@ def get_datasets(arrays, n_higgs):
         h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
 
     # check/fix small-radius jet truth (ensure max 2 small-radius jets per higgs)
-    check = (
-        np.unique(ak.count(h1_bs, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-    )
+    check = np.unique(ak.count(h1_bs, axis=-1)).to_list() + np.unique(ak.count(h2_bs, axis=-1)).to_list()
     if n_higgs == 3:
         check += np.unique(ak.count(h3_bs, axis=-1)).to_list()
 
@@ -222,10 +208,7 @@ def get_datasets(arrays, n_higgs):
         logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
 
     # check/fix large-radius jet truth (ensure max 1 large-radius jet per higgs)
-    fj_check = (
-        np.unique(ak.count(h1_bb, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-    )
+    fj_check = np.unique(ak.count(h1_bb, axis=-1)).to_list() + np.unique(ak.count(h2_bb, axis=-1)).to_list()
     if n_higgs == 3:
         fj_check += np.unique(ak.count(h3_bb, axis=-1)).to_list()
 
@@ -264,59 +247,27 @@ def get_datasets(arrays, n_higgs):
     datasets["INPUTS/Jets/pt"] = to_np_array(pt, max_n=N_JETS).astype("float32")
     datasets["INPUTS/Jets/eta"] = to_np_array(eta, max_n=N_JETS).astype("float32")
     datasets["INPUTS/Jets/phi"] = to_np_array(phi, max_n=N_JETS).astype("float32")
-    datasets["INPUTS/Jets/sinphi"] = to_np_array(np.sin(phi), max_n=N_JETS).astype(
-        "float32"
-    )
-    datasets["INPUTS/Jets/cosphi"] = to_np_array(np.cos(phi), max_n=N_JETS).astype(
-        "float32"
-    )
+    datasets["INPUTS/Jets/sinphi"] = to_np_array(np.sin(phi), max_n=N_JETS).astype("float32")
+    datasets["INPUTS/Jets/cosphi"] = to_np_array(np.cos(phi), max_n=N_JETS).astype("float32")
     datasets["INPUTS/Jets/mass"] = to_np_array(mass, max_n=N_JETS).astype("float32")
     datasets["INPUTS/Jets/btag"] = to_np_array(btag, max_n=N_JETS).astype("float32")
     datasets["INPUTS/Jets/flavor"] = to_np_array(flavor, max_n=N_JETS).astype("float32")
-    datasets["INPUTS/Jets/matchedfj"] = to_np_array(
-        matched_fj_idx, max_n=N_JETS
-    ).astype("int32")
+    datasets["INPUTS/Jets/matchedfj"] = to_np_array(matched_fj_idx, max_n=N_JETS).astype("int32")
 
-    datasets["INPUTS/BoostedJets/MASK"] = to_np_array(fj_mask, max_n=n_fjets).astype(
-        "bool"
-    )
-    datasets["INPUTS/BoostedJets/fj_pt"] = to_np_array(fj_pt, max_n=n_fjets).astype(
-        "float32"
-    )
-    datasets["INPUTS/BoostedJets/fj_eta"] = to_np_array(fj_eta, max_n=n_fjets).astype(
-        "float32"
-    )
-    datasets["INPUTS/BoostedJets/fj_phi"] = to_np_array(fj_phi, max_n=n_fjets).astype(
-        "float32"
-    )
-    datasets["INPUTS/BoostedJets/fj_sinphi"] = to_np_array(
-        np.sin(fj_phi), max_n=n_fjets
-    ).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_cosphi"] = to_np_array(
-        np.cos(fj_phi), max_n=n_fjets
-    ).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_mass"] = to_np_array(fj_mass, max_n=n_fjets).astype(
-        "float32"
-    )
-    datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(
-        fj_sdmass, max_n=n_fjets
-    ).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(
-        fj_tau21, max_n=n_fjets
-    ).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(
-        fj_tau32, max_n=n_fjets
-    ).astype("float32")
+    datasets["INPUTS/BoostedJets/MASK"] = to_np_array(fj_mask, max_n=n_fjets).astype("bool")
+    datasets["INPUTS/BoostedJets/fj_pt"] = to_np_array(fj_pt, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_eta"] = to_np_array(fj_eta, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_phi"] = to_np_array(fj_phi, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_sinphi"] = to_np_array(np.sin(fj_phi), max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_cosphi"] = to_np_array(np.cos(fj_phi), max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_mass"] = to_np_array(fj_mass, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(fj_sdmass, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(fj_tau21, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(fj_tau32, max_n=n_fjets).astype("float32")
     datasets["INPUTS/BoostedJets/fj_charge"] = to_np_array(fj_charge, max_n=n_fjets)
-    datasets["INPUTS/BoostedJets/fj_ehadovereem"] = to_np_array(
-        fj_ehadovereem, max_n=n_fjets
-    )
-    datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(
-        fj_neutralenergyfrac, max_n=n_fjets
-    )
-    datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(
-        fj_chargedenergyfrac, max_n=n_fjets
-    )
+    datasets["INPUTS/BoostedJets/fj_ehadovereem"] = to_np_array(fj_ehadovereem, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(fj_neutralenergyfrac, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(fj_chargedenergyfrac, max_n=n_fjets)
     datasets["INPUTS/BoostedJets/fj_nneutral"] = to_np_array(fj_nneutral, max_n=n_fjets)
     datasets["INPUTS/BoostedJets/fj_ncharged"] = to_np_array(fj_ncharged, max_n=n_fjets)
 
@@ -341,9 +292,7 @@ def get_datasets(arrays, n_higgs):
 
     if n_higgs == 3:
         datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
-        datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(
-            h3_fj_mask.to_numpy().shape
-        )
+        datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
 
     return datasets
 
@@ -356,9 +305,7 @@ def get_datasets(arrays, n_higgs):
     help="Output file.",
 )
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
-@click.option(
-    "--n-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event"
-)
+@click.option("--n-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
 def main(in_files, out_file, train_frac, n_higgs):
     all_datasets = {}
     for file_name in in_files:
@@ -373,17 +320,9 @@ def main(in_files, out_file, train_frac, n_higgs):
                 entry_stop = None
 
             keys = (
-                [
-                    key
-                    for key in events.keys()
-                    if "Particle/Particle." in key and "fBits" not in key
-                ]
+                [key for key in events.keys() if "Particle/Particle." in key and "fBits" not in key]
                 + [key for key in events.keys() if "Jet/Jet." in key]
-                + [
-                    key
-                    for key in events.keys()
-                    if "FatJet/FatJet." in key and "fBits" not in key
-                ]
+                + [key for key in events.keys() if "FatJet/FatJet." in key and "fBits" not in key]
             )
             arrays = events.arrays(keys, entry_start=entry_start, entry_stop=entry_stop)
             datasets = get_datasets(arrays, n_higgs)

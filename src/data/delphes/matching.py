@@ -65,9 +65,7 @@ def match_higgs_to_fjet(higgses, bquarks, fjets, builder):
         builder.begin_list()
         for i, fjet in enumerate(fjets_event):
             match_idx = -1
-            for j, (higgs, higgs_idx) in enumerate(
-                zip(higgses_event, higgses_event.idx)
-            ):
+            for j, (higgs, higgs_idx) in enumerate(zip(higgses_event, higgses_event.idx)):
                 bdaughters = []
                 for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.m1):
                     if bquark_m1 == higgs_idx:
@@ -90,11 +88,7 @@ def match_higgs_to_jet(higgses, bquarks, jets, builder):
             match_idx = -1
             for j, (_, higgs_idx) in enumerate(zip(higgses_event, higgses_event.idx)):
                 for bquark, bquark_m1 in zip(bquarks_event, bquarks_event.m1):
-                    if (
-                        bquark_m1 == higgs_idx
-                        and jet.deltaR(bquark) < JET_DR
-                        and np.abs(jet_flv) == 5
-                    ):
+                    if bquark_m1 == higgs_idx and jet.deltaR(bquark) < JET_DR and np.abs(jet_flv) == 5:
                         match_idx = j + 1  # index higgs as 1, 2, 3
             builder.append(match_idx)
         builder.end_list()
