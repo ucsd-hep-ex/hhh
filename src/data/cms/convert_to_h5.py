@@ -220,7 +220,13 @@ def get_datasets(events, n_higgs):  # noqa: C901
 @click.argument("in-files", nargs=-1)
 @click.option("--out-file", default=f"{PROJECT_DIR}/data/cms/hhh_training.h5", help="Output file.")
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
-@click.option("--n-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
+@click.option(
+    "--n-higgs",
+    "n_higgs",
+    default=3,
+    type=click.Choice([3, 2]),
+    help="Number of Higgs bosons per event",
+)
 def main(in_files, out_file, train_frac, n_higgs):
     all_datasets = {}
     for file_name in in_files:

@@ -22,14 +22,23 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 @click.command()
 @click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
 @click.option("--event-file", default=f"{PROJECT_DIR}/event_files/cms/hhh.yaml", help="Event file")
-@click.option("--multi-higgs", "n_higgs", default=3, help="Number of Higgs bosons per event")
-@click.option("--method", default="standard", help="Baseline method to be tested")
+@click.option(
+    "--n-higgs",
+    "n_higgs",
+    default=3,
+    type=click.Choice([3, 2]),
+    help="Number of Higgs bosons per event",
+)
+@click.option(
+    "--method",
+    default="standard",
+    type=click.Choice(["standard", "agnostic"]),
+    help="Baseline method to be tested",
+)
 def main(test_file, event_file, n_higgs, method):
     # Checks to see if click flags are valid
-    if (method != "standard") and (method != "agnostic" or n_higgs != 2):
+    if method == "agnostic" and n_higgs == 3:
         raise ValueError("Invalid baseline method selected.")
-    if n_higgs != 2 and n_higgs != 3:
-        raise ValueError("Invalid number of Higgs bosons selected.")
 
     MIN_JETS = 2 * n_higgs
     # compute possible jet assignments lookup table
