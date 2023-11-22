@@ -138,9 +138,6 @@ def get_datasets(arrays, n_higgs):
     mask_minjets = ak.num(pt[pt > MIN_JET_PT]) >= min_jets
     # sort by btag first, then pt
     sorted_by_pt = ak.argsort(pt, ascending=False, axis=-1)
-    print(sorted_by_pt)
-    print(sorted_by_pt[btag == 1])
-    print(sorted_by_pt[btag == 0])
     sorted = ak.concatenate([sorted_by_pt[btag == 1], sorted_by_pt[btag == 0]], axis=-1)
     btag = btag[sorted][mask_minjets]
     pt = pt[sorted][mask_minjets]
