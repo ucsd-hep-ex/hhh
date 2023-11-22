@@ -224,7 +224,7 @@ def get_datasets(events, n_higgs):  # noqa: C901
     "--n-higgs",
     "n_higgs",
     default=3,
-    type=click.Choice([3, 2]),
+    type=click.IntRange(2, 3),
     help="Number of Higgs bosons per event",
 )
 def main(in_files, out_file, train_frac, n_higgs):
