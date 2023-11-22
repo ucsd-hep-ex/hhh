@@ -30,7 +30,7 @@ def to_np_array(ak_array, max_n=10, pad=0):
     return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad).to_numpy()
 
 
-def get_datasets(arrays, n_higgs):
+def get_datasets(arrays, n_higgs):  # noqa: C901
     part_pid = arrays["Particle/Particle.PID"]  # PDG ID
     part_m1 = arrays["Particle/Particle.M1"]
     # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on

@@ -31,7 +31,7 @@ def get_n_features(name, events, iterator):
     )
 
 
-def get_datasets(events, n_higgs):
+def get_datasets(events, n_higgs):  # noqa: C901
     # small-radius jet info
     pt = get_n_features("jet{i}Pt", events, range(1, N_JETS + 1))
     ptcorr = get_n_features("jet{i}PtCorr", events, range(1, N_JETS + 1))
