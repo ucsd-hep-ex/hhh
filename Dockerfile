@@ -18,7 +18,9 @@ RUN pip install -q \
     pre-commit \
     jupyter_contrib_nbextensions \
     protobuf \
-    pytorch-lightning==1.8.6
+    pytorch-lightning \
+    ray[tune] \
+    hyperopt
 
 RUN jupyter contrib nbextension install --user \
     && jupyter nbextension enable execute_time/ExecuteTime
