@@ -4,6 +4,9 @@ FROM continuumio/miniconda3
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
+# Update the package list and install Vim
+RUN apt-get update && apt-get install -y vim
+
 # Download the YAML file
 # Replace the URL with the actual URL of your YAML file
 RUN wget -O environment.yaml https://github.com/Alexanders101/SPANet/blob/master/environment_cuda118.yaml 
