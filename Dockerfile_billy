@@ -1,0 +1,15 @@
+# Use an official Miniconda runtime as a parent image
+FROM continuumio/miniconda3
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Download the YAML file
+# Replace the URL with the actual URL of your YAML file
+RUN wget -O environment.yaml https://github.com/Alexanders101/SPANet/blob/master/environment_cuda118.yaml 
+
+# Create the environment using the downloaded YAML file
+RUN conda env create -f environment.yaml
+
+# Make RUN commands use the new environment:
+SHELL ["conda", "run", "-n", "your_env_name", "/bin/bash", "-c"]
