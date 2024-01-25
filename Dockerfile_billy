@@ -9,10 +9,17 @@ RUN apt-get update && apt-get install -y vim
 
 # Download the YAML file
 # Replace the URL with the actual URL of your YAML file
-RUN wget -O environment.yaml https://github.com/Alexanders101/SPANet/blob/master/environment_cuda118.yaml 
+RUN wget -O environment.yaml https://raw.githubusercontent.com/Alexanders101/SPANet/master/environment_cuda118.yaml
 
 # Create the environment using the downloaded YAML file
-RUN conda env create -f environment.yaml
+RUN conda env create -n spanet -f environment.yaml
+
+# Activate the Conda environment and install additional packages with pip
+# Replace 'your_env_name' with the name of your Conda environment
+# Replace 'package1 package2' with the packages you want to install
+RUN echo "source activate spanet" > ~/.bashrc
+ENV PATH /opt/conda/envs/spanet/bin:$PATH
+RUN pip install git+https://github.com/Alexanders101/SPANet@master "ray[tune]" hyperopt
 
 # Make RUN commands use the new environment:
-SHELL ["conda", "run", "-n", "your_env_name", "/bin/bash", "-c"]
+SHELL ["conda", "activate", "spanet", "/bin/bash", "-c"]
