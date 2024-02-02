@@ -9,14 +9,17 @@ RUN apt-get update && apt-get install -y vim-gtk
 
 # Download the YAML file
 # Replace the URL with the actual URL of your YAML file
-RUN wget -O environment.yaml https://raw.githubusercontent.com/Alexanders101/SPANet/master/environment_cuda118.yaml
+RUN wget -O environment.yaml https://raw.githubusercontent.com/Alexanders101/SPANet/master/environment_cuda117.yaml
 
 # Create the environment using the downloaded YAML file
 RUN conda env create -f environment.yaml
+RUN conda init bash
+SHELL ["conda", "run", "-n", "spanet", "/bin/bash", "-c"]
 
 # Activate the Conda environment and install additional packages with pip
 # Replace 'your_env_name' with the name of your Conda environment
 # Replace 'package1 package2' with the packages you want to install
-RUN echo "conda activate spanet" > ~/.bashrc
 ENV PATH /opt/conda/bin:$PATH
 RUN pip install git+https://github.com/Alexanders101/SPANet@master "ray[tune]" hyperopt
+
+RUN echo "conda activate spanet" > ~/.bashrc
