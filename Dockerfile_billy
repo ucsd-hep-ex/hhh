@@ -13,7 +13,6 @@ RUN wget -O environment.yaml https://raw.githubusercontent.com/Alexanders101/SPA
 
 # Create the environment using the downloaded YAML file
 RUN conda env create -f environment.yaml
-RUN conda init bash
 SHELL ["conda", "run", "-n", "spanet", "/bin/bash", "-c"]
 
 # Activate the Conda environment and install additional packages with pip
@@ -21,5 +20,3 @@ SHELL ["conda", "run", "-n", "spanet", "/bin/bash", "-c"]
 # Replace 'package1 package2' with the packages you want to install
 ENV PATH /opt/conda/bin:$PATH
 RUN pip install git+https://github.com/Alexanders101/SPANet@master "ray[tune]" hyperopt
-
-RUN echo "conda activate spanet" > ~/.bashrc
