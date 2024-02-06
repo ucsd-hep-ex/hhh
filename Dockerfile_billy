@@ -18,4 +18,4 @@ SHELL ["conda", "run", "-n", "spanet", "/bin/bash", "-c"]
 
 # Activate the Conda environment and install additional packages with pip
 ENV PATH /opt/conda/bin:$PATH
-RUN pip install git+https://github.com/Alexanders101/SPANet@master "ray[tune]" hyperopt
+RUN pip install git+https://github.com/Alexanders101/SPANet@master "ray[tune]==2.5.1" hyperopt
