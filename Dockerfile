@@ -18,9 +18,13 @@ RUN pip install -q \
     pre-commit \
     jupyter_contrib_nbextensions \
     protobuf \
-    pytorch-lightning==1.8.6
+    pytorch-lightning \
+    ray[tune] \
+    hyperopt \
+    jupyterlab_execute_time
 
-RUN jupyter contrib nbextension install --user \
-    && jupyter nbextension enable execute_time/ExecuteTime
+# nbextensions not compatible with notebook>7 / jupyterlab
+# RUN jupyter contrib nbextension install --user \
+#     && jupyter nbextension enable execute_time/ExecuteTime
 
 RUN fix-permissions /home/$NB_USER
