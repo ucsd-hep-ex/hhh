@@ -10,8 +10,13 @@ from src.analysis.utils import calc_eff, calc_pur
 
 def calc_pur_eff(target_path, pred_path, bins):
     # open files
-    pred_h5 = h5.File(pred_path)
+    pred_h5 = h5.File(pred_path, 'a')
     target_h5 = h5.File(target_path)
+
+    # handle different pl version
+    if 'TARGETS' not in pred_h5.keys():
+        pred_h5["INPUTS"] = pred_h5["SpecialKey.Inputs"]
+        pred_h5["TARGETS"] = pred_h5["SpecialKey.Targets"]
     
     # generate look up tables
     LUT_boosted_pred, LUT_boosted_target, fjs_reco = parse_boosted_w_target(target_h5, pred_h5)
@@ -82,9 +87,9 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     plt.show()
     
     if save_path is not None:
-        fig_m.save(f"save_path/{proj_name}_merged.png")
-        fig_b.save(f"save_path/{proj_name}_boosted.png")
-        fig_r.save(f"save_path/{proj_name}_resolved.png")
+        fig_m.savefig(f"{save_path}/{proj_name}_merged.png")
+        fig_b.savefig(f"{save_path}/{proj_name}_boosted.png")
+        fig_r.savefig(f"{save_path}/{proj_name}_resolved.png")
     
     return
     
