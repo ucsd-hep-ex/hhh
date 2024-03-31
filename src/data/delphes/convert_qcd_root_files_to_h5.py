@@ -16,7 +16,7 @@ from src.data.delphes.matching import (
 
 vector.register_awkward()
 vector.register_numba()
-ak.numba.register()
+ak.numba.register_and_check()
 
 logging.basicConfig(level=logging.INFO)
 
