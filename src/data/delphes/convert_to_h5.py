@@ -193,9 +193,9 @@ def get_datasets(arrays):
     h2_pt, bh2_pt = H_pt[:, 1], H_pt[:, 1]
     h3_pt, bh3_pt = H_pt[:, 2], H_pt[:, 2]
 
-    h1_mh, bh1_pt = H_mh[:,0], H_mh[:,0]
-    h2_mh, bh2_pt = H_mh[:,1], H_mh[:,1]
-    h3_mh, bh3_pt = H_mh[:,2], H_mh[:,2]
+    h1_mh, bh1_mh = H_mh[:,0], H_mh[:,0]
+    h2_mh, bh2_mh = H_mh[:,1], H_mh[:,1]
+    h3_mh, bh3_mh = H_mh[:,2], H_mh[:,2]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
