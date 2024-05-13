@@ -14,11 +14,9 @@ vector.register_awkward()
 logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
-N_FJETS = 3
 N_MASSES = 45
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
-MIN_JETS = 6
 MIN_MASS = 50
 PROJECT_DIR = Path(__file__).resolve().parents[3]
 
@@ -33,7 +31,7 @@ def get_n_features(name, events, iterator):
     )
 
 
-def get_datasets(events):
+def get_datasets(events, n_higgs):  # noqa: C901
     # small-radius jet info
     pt = get_n_features("jet{i}Pt", events, range(1, N_JETS + 1))
     ptcorr = get_n_features("jet{i}PtCorr", events, range(1, N_JETS + 1))
@@ -50,21 +48,23 @@ def get_datasets(events):
     mass = get_n_features("mass{i}", events, range(N_MASSES))
 
     # large-radius jet info
-    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, N_FJETS + 1))
-    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, N_FJETS + 1))
-    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, N_FJETS + 1))
-    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, N_FJETS + 1))
-    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, N_FJETS + 1))
-    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, N_FJETS + 1))
-    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, N_FJETS + 1))
-    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, N_FJETS + 1))
-    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, N_FJETS + 1))
-    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, N_FJETS + 1))
-    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, N_FJETS + 1))
-    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, range(1, N_FJETS + 1))
+    n_fjets = n_higgs
+    fj_pt = get_n_features("fatJet{i}Pt", events, range(1, n_fjets + 1))
+    fj_eta = get_n_features("fatJet{i}Eta", events, range(1, n_fjets + 1))
+    fj_phi = get_n_features("fatJet{i}Phi", events, range(1, n_fjets + 1))
+    fj_mass = get_n_features("fatJet{i}Mass", events, range(1, n_fjets + 1))
+    fj_sdmass = get_n_features("fatJet{i}MassSD", events, range(1, n_fjets + 1))
+    fj_regmass = get_n_features("fatJet{i}MassRegressed", events, range(1, n_fjets + 1))
+    fj_nsub = get_n_features("fatJet{i}NSubJets", events, range(1, n_fjets + 1))
+    fj_tau32 = get_n_features("fatJet{i}Tau3OverTau2", events, range(1, n_fjets + 1))
+    fj_xbb = get_n_features("fatJet{i}PNetXbb", events, range(1, n_fjets + 1))
+    fj_xqq = get_n_features("fatJet{i}PNetXjj", events, range(1, n_fjets + 1))
+    fj_qcd = get_n_features("fatJet{i}PNetQCD", events, range(1, n_fjets + 1))
+    fj_higgs_idx = get_n_features("fatJet{i}HiggsMatchedIndex", events, range(1, n_fjets + 1))
 
-    # keep events with >= MIN_JETS small-radius jets
-    mask = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
+    # keep events with >= min_jets small-radius jets
+    min_jets = 2 * n_higgs
+    mask = ak.num(pt[pt > MIN_JET_PT]) >= min_jets
     pt = pt[mask]
     ptcorr = ptcorr[mask]
     eta = eta[mask]
@@ -105,52 +105,57 @@ def get_datasets(events):
     # index of small-radius jet if Higgs is reconstructed
     h1_bs = ak.local_index(higgs_idx)[higgs_idx == 1]
     h2_bs = ak.local_index(higgs_idx)[higgs_idx == 2]
-    h3_bs = ak.local_index(higgs_idx)[higgs_idx == 3]
+    if n_higgs == 3:
+        h3_bs = ak.local_index(higgs_idx)[higgs_idx == 3]
 
     # index of large-radius jet if Higgs is reconstructed
     h1_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 1]
     h2_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 2]
-    h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
+    if n_higgs == 3:
+        h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
 
     # check/fix small-radius jet truth (ensure max 2 small-radius jets per higgs)
-    check = (
-        np.unique(ak.count(h1_bs, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-        + np.unique(ak.count(h3_bs, axis=-1)).to_list()
-    )
+    check = np.unique(ak.count(h1_bs, axis=-1)).to_list() + np.unique(ak.count(h2_bs, axis=-1)).to_list()
+    if n_higgs == 3:
+        check += np.unique(ak.count(h3_bs, axis=-1)).to_list()
+
     if 3 in check:
         logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
 
     # check/fix large-radius jet truth (ensure max 1 large-radius jet per higgs)
-    fj_check = (
-        np.unique(ak.count(h1_bb, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-        + np.unique(ak.count(h3_bb, axis=-1)).to_list()
-    )
+    fj_check = np.unique(ak.count(h1_bb, axis=-1)).to_list() + np.unique(ak.count(h2_bb, axis=-1)).to_list()
+    if n_higgs == 3:
+        fj_check += np.unique(ak.count(h3_bb, axis=-1)).to_list()
+
     if 2 in fj_check:
         logging.warning("some Higgs bosons match to 2 large-radius jets! Check truth")
 
     h1_bs = ak.fill_none(ak.pad_none(h1_bs, 2, clip=True), -1)
     h2_bs = ak.fill_none(ak.pad_none(h2_bs, 2, clip=True), -1)
-    h3_bs = ak.fill_none(ak.pad_none(h3_bs, 2, clip=True), -1)
+    if n_higgs == 3:
+        h3_bs = ak.fill_none(ak.pad_none(h3_bs, 2, clip=True), -1)
 
     h1_bb = ak.fill_none(ak.pad_none(h1_bb, 1, clip=True), -1)
     h2_bb = ak.fill_none(ak.pad_none(h2_bb, 1, clip=True), -1)
-    h3_bb = ak.fill_none(ak.pad_none(h3_bb, 1, clip=True), -1)
+    if n_higgs == 3:
+        h3_bb = ak.fill_none(ak.pad_none(h3_bb, 1, clip=True), -1)
 
     h1_b1, h1_b2 = h1_bs[:, 0], h1_bs[:, 1]
     h2_b1, h2_b2 = h2_bs[:, 0], h2_bs[:, 1]
-    h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
+    if n_higgs == 3:
+        h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
 
     # mask whether Higgs can be reconstructed as 2 small-radius jet
     h1_mask = ak.all(h1_bs != -1, axis=-1)
     h2_mask = ak.all(h2_bs != -1, axis=-1)
-    h3_mask = ak.all(h3_bs != -1, axis=-1)
+    if n_higgs == 3:
+        h3_mask = ak.all(h3_bs != -1, axis=-1)
 
     # mask whether Higgs can be reconstructed as 1 large-radius jet
     h1_fj_mask = ak.all(h1_bb != -1, axis=-1)
     h2_fj_mask = ak.all(h2_bb != -1, axis=-1)
-    h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
+    if n_higgs == 3:
+        h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
 
     datasets = {}
     datasets["INPUTS/Jets/MASK"] = mask.to_numpy()
@@ -193,9 +198,10 @@ def get_datasets(events):
     datasets["TARGETS/h2/b1"] = h2_b1.to_numpy()
     datasets["TARGETS/h2/b2"] = h2_b2.to_numpy()
 
-    datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
-    datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
-    datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
+    if n_higgs == 3:
+        datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
+        datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
+        datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
 
     datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
     datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy().reshape(h1_fj_mask.to_numpy().shape)
@@ -203,8 +209,9 @@ def get_datasets(events):
     datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
     datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy().reshape(h2_fj_mask.to_numpy().shape)
 
-    datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
-    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
+    if n_higgs == 3:
+        datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
+        datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
 
     return datasets
 
@@ -213,7 +220,14 @@ def get_datasets(events):
 @click.argument("in-files", nargs=-1)
 @click.option("--out-file", default=f"{PROJECT_DIR}/data/cms/hhh_training.h5", help="Output file.")
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
-def main(in_files, out_file, train_frac):
+@click.option(
+    "--n-higgs",
+    "n_higgs",
+    default=3,
+    type=click.IntRange(2, 3),
+    help="Number of Higgs bosons per event",
+)
+def main(in_files, out_file, train_frac, n_higgs):
     all_datasets = {}
     for file_name in in_files:
         with uproot.open(file_name) as in_file:
@@ -232,7 +246,7 @@ def main(in_files, out_file, train_frac):
                 schemaclass=BaseSchema,
             ).events()
 
-            datasets = get_datasets(events)
+            datasets = get_datasets(events, n_higgs)
             for dataset_name, data in datasets.items():
                 if dataset_name not in all_datasets:
                     all_datasets[dataset_name] = []

@@ -1,0 +1,21 @@
+# Use an official Miniconda runtime as a parent image
+FROM continuumio/miniconda3
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Update the package list and install Vim
+RUN apt-get update && apt-get install -y vim-gtk
+
+# Download the YAML file
+RUN wget -O environment.yaml https://raw.githubusercontent.com/Alexanders101/SPANet/master/environment_cuda117.yaml
+
+# Create the environment using the downloaded YAML file
+RUN conda env create -f environment.yaml
+
+# Modify the shell comand to activate spanet before any RUN command
+SHELL ["conda", "run", "-n", "spanet", "/bin/bash", "-c"]
+
+# Activate the Conda environment and install additional packages with pip
+ENV PATH /opt/conda/bin:$PATH
+RUN pip install git+https://github.com/Alexanders101/SPANet@master "ray[tune]" hyperopt

@@ -21,10 +21,8 @@ ak.numba.register()
 logging.basicConfig(level=logging.INFO)
 
 N_JETS = 10
-N_FJETS = 3
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
-MIN_JETS = 6
 PROJECT_DIR = Path(__file__).resolve().parents[3]
 
 
@@ -32,54 +30,51 @@ def to_np_array(ak_array, max_n=10, pad=0):
     return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad).to_numpy()
 
 
-def get_datasets(arrays):
+def get_datasets(arrays, n_higgs):  # noqa: C901
     part_pid = arrays["Particle/Particle.PID"]  # PDG ID
     part_m1 = arrays["Particle/Particle.M1"]
     # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
-    # explicitly mask these events out, just keeping hhh6b events
-    condition_hhh6b = np.logical_and(np.abs(part_pid) == 5, part_pid[part_m1] == 25)
-    mask_hhh6b = ak.count(part_pid[condition_hhh6b], axis=-1) == 6
-    part_pid = part_pid[mask_hhh6b]
-    part_pt = arrays["Particle/Particle.PT"][mask_hhh6b]
-    part_eta = arrays["Particle/Particle.Eta"][mask_hhh6b]
-    part_phi = arrays["Particle/Particle.Phi"][mask_hhh6b]
-    part_mass = arrays["Particle/Particle.Mass"][mask_hhh6b]
-    part_m1 = arrays["Particle/Particle.M1"][mask_hhh6b]
-    part_d1 = arrays["Particle/Particle.D1"][mask_hhh6b]
+    # explicitly mask these events out, just keeping hbb events
+    condition_hbb = np.logical_and(np.abs(part_pid) == 5, part_pid[part_m1] == 25)
+    mask_hbb = ak.count(part_pid[condition_hbb], axis=-1) == 2 * n_higgs
+    part_pid = part_pid[mask_hbb]
+    part_pt = arrays["Particle/Particle.PT"][mask_hbb]
+    part_eta = arrays["Particle/Particle.Eta"][mask_hbb]
+    part_phi = arrays["Particle/Particle.Phi"][mask_hbb]
+    part_mass = arrays["Particle/Particle.Mass"][mask_hbb]
+    part_m1 = arrays["Particle/Particle.M1"][mask_hbb]
+    part_d1 = arrays["Particle/Particle.D1"][mask_hbb]
 
     # small-radius jet info
-    pt = arrays["Jet/Jet.PT"][mask_hhh6b]
-    eta = arrays["Jet/Jet.Eta"][mask_hhh6b]
-    phi = arrays["Jet/Jet.Phi"][mask_hhh6b]
-    mass = arrays["Jet/Jet.Mass"][mask_hhh6b]
-    btag = arrays["Jet/Jet.BTag"][mask_hhh6b]
-    flavor = arrays["Jet/Jet.Flavor"][mask_hhh6b]
+    pt = arrays["Jet/Jet.PT"][mask_hbb]
+    eta = arrays["Jet/Jet.Eta"][mask_hbb]
+    phi = arrays["Jet/Jet.Phi"][mask_hbb]
+    mass = arrays["Jet/Jet.Mass"][mask_hbb]
+    btag = arrays["Jet/Jet.BTag"][mask_hbb]
+    flavor = arrays["Jet/Jet.Flavor"][mask_hbb]
 
     # large-radius jet info
-    fj_pt = arrays["FatJet/FatJet.PT"][mask_hhh6b]
-    fj_eta = arrays["FatJet/FatJet.Eta"][mask_hhh6b]
-    fj_phi = arrays["FatJet/FatJet.Phi"][mask_hhh6b]
-    fj_mass = arrays["FatJet/FatJet.Mass"][mask_hhh6b]
-    fj_sdp4 = arrays["FatJet/FatJet.SoftDroppedP4[5]"][mask_hhh6b]
+    fj_pt = arrays["FatJet/FatJet.PT"][mask_hbb]
+    fj_eta = arrays["FatJet/FatJet.Eta"][mask_hbb]
+    fj_phi = arrays["FatJet/FatJet.Phi"][mask_hbb]
+    fj_mass = arrays["FatJet/FatJet.Mass"][mask_hbb]
+    fj_sdp4 = arrays["FatJet/FatJet.SoftDroppedP4[5]"][mask_hbb]
     # first entry (i = 0) is the total SoftDropped Jet 4-momenta
     # from i = 1 to 4 are the pruned subjets 4-momenta
-    fj_sdmass = np.sqrt(
+    fj_sdmass2 = (
         fj_sdp4.fE[..., 0] ** 2 - fj_sdp4.fP.fX[..., 0] ** 2 - fj_sdp4.fP.fY[..., 0] ** 2 - fj_sdp4.fP.fZ[..., 0] ** 2
     )
-    fj_nsub = arrays["FatJet/FatJet.NSubJetsSoftDropped"][mask_hhh6b]
-    fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hhh6b]
+    fj_sdmass = np.sqrt(np.maximum(fj_sdmass2, 0))
+    fj_taus = arrays["FatJet/FatJet.Tau[5]"][mask_hbb]
     # just saving just tau21 and tau32, can save others if useful
-    fj_tau21 = fj_taus[..., 1] / fj_taus[..., 0]
-    fj_tau32 = fj_taus[..., 2] / fj_taus[..., 1]
-    fj_areap4 = arrays["FatJet/FatJet.Area"][mask_hhh6b]
-    fj_area = np.hypot(fj_areap4.fP.fX, fj_areap4.fP.fY)
-    fj_charge = arrays["FatJet/FatJet.Charge"][mask_hhh6b]
-    fj_ptd = arrays["FatJet/FatJet.PTD"][mask_hhh6b]
-    fj_ehadovereem = arrays["FatJet/FatJet.EhadOverEem"][mask_hhh6b]
-    fj_neutralenergyfrac = arrays["FatJet/FatJet.NeutralEnergyFraction"][mask_hhh6b]
-    fj_chargedenergyfrac = arrays["FatJet/FatJet.ChargedEnergyFraction"][mask_hhh6b]
-    fj_nneutral = arrays["FatJet/FatJet.NNeutrals"][mask_hhh6b]
-    fj_ncharged = arrays["FatJet/FatJet.NCharged"][mask_hhh6b]
+    fj_tau21 = np.nan_to_num(fj_taus[..., 1] / fj_taus[..., 0], nan=-1)
+    fj_tau32 = np.nan_to_num(fj_taus[..., 2] / fj_taus[..., 1], nan=-1)
+    fj_charge = arrays["FatJet/FatJet.Charge"][mask_hbb]
+    fj_ehadovereem = arrays["FatJet/FatJet.EhadOverEem"][mask_hbb]
+    fj_neutralenergyfrac = arrays["FatJet/FatJet.NeutralEnergyFraction"][mask_hbb]
+    fj_chargedenergyfrac = arrays["FatJet/FatJet.ChargedEnergyFraction"][mask_hbb]
+    fj_nneutral = arrays["FatJet/FatJet.NNeutrals"][mask_hbb]
+    fj_ncharged = arrays["FatJet/FatJet.NCharged"][mask_hbb]
 
     particles = ak.zip(
         {
@@ -127,8 +122,9 @@ def get_datasets(arrays):
     matched_fj_idx = match_fjet_to_jet(fjets, jets, ak.ArrayBuilder()).snapshot()
     fj_higgs_idx = match_higgs_to_fjet(higgses, bquarks, fjets, ak.ArrayBuilder()).snapshot()
 
-    # keep events with >= MIN_JETS small-radius jets
-    mask_minjets = ak.num(pt[pt > MIN_JET_PT]) >= MIN_JETS
+    # keep events with >= min_jets small-radius jets
+    min_jets = 2 * n_higgs
+    mask_minjets = ak.num(pt[pt > MIN_JET_PT]) >= min_jets
     # sort by btag first, then pt
     sorted_by_pt = ak.argsort(pt, ascending=False, axis=-1)
     sorted = ak.concatenate([sorted_by_pt[btag == 1], sorted_by_pt[btag == 0]], axis=-1)
@@ -158,12 +154,9 @@ def get_datasets(arrays):
     fj_phi = fj_phi[sorted_by_fj_pt][mask_minjets]
     fj_mass = fj_mass[sorted_by_fj_pt][mask_minjets]
     fj_sdmass = fj_sdmass[sorted_by_fj_pt][mask_minjets]
-    fj_nsub = fj_nsub[sorted_by_fj_pt][mask_minjets]
     fj_tau21 = fj_tau21[sorted_by_fj_pt][mask_minjets]
     fj_tau32 = fj_tau32[sorted_by_fj_pt][mask_minjets]
-    fj_area = fj_area[sorted_by_fj_pt][mask_minjets]
     fj_charge = fj_charge[sorted_by_fj_pt][mask_minjets]
-    fj_ptd = fj_ptd[sorted_by_fj_pt][mask_minjets]
     fj_ehadovereem = fj_ehadovereem[sorted_by_fj_pt][mask_minjets]
     fj_neutralenergyfrac = fj_neutralenergyfrac[sorted_by_fj_pt][mask_minjets]
     fj_chargedenergyfrac = fj_chargedenergyfrac[sorted_by_fj_pt][mask_minjets]
@@ -171,24 +164,30 @@ def get_datasets(arrays):
     fj_ncharged = fj_ncharged[sorted_by_fj_pt][mask_minjets]
     fj_higgs_idx = fj_higgs_idx[sorted_by_fj_pt][mask_minjets]
 
-    # keep only top N_FJETS
-    fj_pt = fj_pt[:, :N_FJETS]
-    fj_eta = fj_eta[:, :N_FJETS]
-    fj_phi = fj_phi[:, :N_FJETS]
-    fj_mass = fj_mass[:, :N_FJETS]
-    fj_sdmass = fj_sdmass[:, :N_FJETS]
-    fj_nsub = fj_nsub[:, :N_FJETS]
-    fj_tau21 = fj_tau21[:, :N_FJETS]
-    fj_tau32 = fj_tau32[:, :N_FJETS]
-    fj_area = fj_area[:, :N_FJETS]
-    fj_charge = fj_charge[:, :N_FJETS]
-    fj_ptd = fj_ptd[:, :N_FJETS]
-    fj_ehadovereem = fj_ehadovereem[:, :N_FJETS]
-    fj_neutralenergyfrac = fj_neutralenergyfrac[:, :N_FJETS]
-    fj_chargedenergyfrac = fj_chargedenergyfrac[:, :N_FJETS]
-    fj_nneutral = fj_nneutral[:, :N_FJETS]
-    fj_ncharged = fj_ncharged[:, :N_FJETS]
-    fj_higgs_idx = fj_higgs_idx[:, :N_FJETS]
+    # keep only top n_fjets
+    n_fjets = n_higgs
+    fj_pt = fj_pt[:, :n_fjets]
+    fj_eta = fj_eta[:, :n_fjets]
+    fj_phi = fj_phi[:, :n_fjets]
+    fj_mass = fj_mass[:, :n_fjets]
+    fj_sdmass = fj_sdmass[:, :n_fjets]
+    fj_tau21 = fj_tau21[:, :n_fjets]
+    fj_tau32 = fj_tau32[:, :n_fjets]
+    fj_charge = fj_charge[:, :n_fjets]
+    fj_ehadovereem = fj_ehadovereem[:, :n_fjets]
+    fj_neutralenergyfrac = fj_neutralenergyfrac[:, :n_fjets]
+    fj_chargedenergyfrac = fj_chargedenergyfrac[:, :n_fjets]
+    fj_nneutral = fj_nneutral[:, :n_fjets]
+    fj_ncharged = fj_ncharged[:, :n_fjets]
+    fj_higgs_idx = fj_higgs_idx[:, :n_fjets]
+
+    # add H pT info
+    H_pt = higgses[mask_minjets].pt
+    H_pt = ak.fill_none(ak.pad_none(H_pt, target=3, axis=1, clip=True), -1)
+
+    h1_pt, bh1_pt = H_pt[:, 0], H_pt[:, 0]
+    h2_pt, bh2_pt = H_pt[:, 1], H_pt[:, 1]
+    h3_pt, bh3_pt = H_pt[:, 2], H_pt[:, 2]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
@@ -199,52 +198,57 @@ def get_datasets(arrays):
     # index of small-radius jet if Higgs is reconstructed
     h1_bs = ak.local_index(higgs_idx)[higgs_idx == 1]
     h2_bs = ak.local_index(higgs_idx)[higgs_idx == 2]
-    h3_bs = ak.local_index(higgs_idx)[higgs_idx == 3]
+    if n_higgs == 3:
+        h3_bs = ak.local_index(higgs_idx)[higgs_idx == 3]
 
     # index of large-radius jet if Higgs is reconstructed
     h1_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 1]
     h2_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 2]
-    h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
+    if n_higgs == 3:
+        h3_bb = ak.local_index(fj_higgs_idx)[fj_higgs_idx == 3]
 
     # check/fix small-radius jet truth (ensure max 2 small-radius jets per higgs)
-    check = (
-        np.unique(ak.count(h1_bs, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bs, axis=-1)).to_list()
-        + np.unique(ak.count(h3_bs, axis=-1)).to_list()
-    )
+    check = np.unique(ak.count(h1_bs, axis=-1)).to_list() + np.unique(ak.count(h2_bs, axis=-1)).to_list()
+    if n_higgs == 3:
+        check += np.unique(ak.count(h3_bs, axis=-1)).to_list()
+
     if 3 in check:
         logging.warning("some Higgs bosons match to 3 small-radius jets! Check truth")
 
     # check/fix large-radius jet truth (ensure max 1 large-radius jet per higgs)
-    fj_check = (
-        np.unique(ak.count(h1_bb, axis=-1)).to_list()
-        + np.unique(ak.count(h2_bb, axis=-1)).to_list()
-        + np.unique(ak.count(h3_bb, axis=-1)).to_list()
-    )
+    fj_check = np.unique(ak.count(h1_bb, axis=-1)).to_list() + np.unique(ak.count(h2_bb, axis=-1)).to_list()
+    if n_higgs == 3:
+        fj_check += np.unique(ak.count(h3_bb, axis=-1)).to_list()
+
     if 2 in fj_check:
         logging.warning("some Higgs bosons match to 2 large-radius jets! Check truth")
 
     h1_bs = ak.fill_none(ak.pad_none(h1_bs, 2, clip=True), -1)
     h2_bs = ak.fill_none(ak.pad_none(h2_bs, 2, clip=True), -1)
-    h3_bs = ak.fill_none(ak.pad_none(h3_bs, 2, clip=True), -1)
+    if n_higgs == 3:
+        h3_bs = ak.fill_none(ak.pad_none(h3_bs, 2, clip=True), -1)
 
     h1_bb = ak.fill_none(ak.pad_none(h1_bb, 1, clip=True), -1)
     h2_bb = ak.fill_none(ak.pad_none(h2_bb, 1, clip=True), -1)
-    h3_bb = ak.fill_none(ak.pad_none(h3_bb, 1, clip=True), -1)
+    if n_higgs == 3:
+        h3_bb = ak.fill_none(ak.pad_none(h3_bb, 1, clip=True), -1)
 
     h1_b1, h1_b2 = h1_bs[:, 0], h1_bs[:, 1]
     h2_b1, h2_b2 = h2_bs[:, 0], h2_bs[:, 1]
-    h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
+    if n_higgs == 3:
+        h3_b1, h3_b2 = h3_bs[:, 0], h3_bs[:, 1]
 
     # mask whether Higgs can be reconstructed as 2 small-radius jet
     h1_mask = ak.all(h1_bs != -1, axis=-1)
     h2_mask = ak.all(h2_bs != -1, axis=-1)
-    h3_mask = ak.all(h3_bs != -1, axis=-1)
+    if n_higgs == 3:
+        h3_mask = ak.all(h3_bs != -1, axis=-1)
 
     # mask whether Higgs can be reconstructed as 1 large-radius jet
     h1_fj_mask = ak.all(h1_bb != -1, axis=-1)
     h2_fj_mask = ak.all(h2_bb != -1, axis=-1)
-    h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
+    if n_higgs == 3:
+        h3_fj_mask = ak.all(h3_bb != -1, axis=-1)
 
     datasets = {}
     datasets["INPUTS/Jets/MASK"] = to_np_array(mask, max_n=N_JETS).astype("bool")
@@ -258,55 +262,71 @@ def get_datasets(arrays):
     datasets["INPUTS/Jets/flavor"] = to_np_array(flavor, max_n=N_JETS).astype("float32")
     datasets["INPUTS/Jets/matchedfj"] = to_np_array(matched_fj_idx, max_n=N_JETS).astype("int32")
 
-    datasets["INPUTS/BoostedJets/MASK"] = to_np_array(fj_mask, max_n=N_FJETS).astype("bool")
-    datasets["INPUTS/BoostedJets/fj_pt"] = to_np_array(fj_pt, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_eta"] = to_np_array(fj_eta, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_phi"] = to_np_array(fj_phi, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_sinphi"] = to_np_array(np.sin(fj_phi), max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_cosphi"] = to_np_array(np.cos(fj_phi), max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_mass"] = to_np_array(fj_mass, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(fj_sdmass, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_nsub"] = to_np_array(fj_nsub, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(fj_tau21, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(fj_tau32, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_area"] = to_np_array(fj_area, max_n=N_FJETS).astype("float32")
-    datasets["INPUTS/BoostedJets/fj_charge"] = to_np_array(fj_charge, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_ptd"] = to_np_array(fj_ptd, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_ehadovereem"] = to_np_array(fj_ehadovereem, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(fj_neutralenergyfrac, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(fj_chargedenergyfrac, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_nneutral"] = to_np_array(fj_nneutral, max_n=N_FJETS)
-    datasets["INPUTS/BoostedJets/fj_ncharged"] = to_np_array(fj_ncharged, max_n=N_FJETS)
+    datasets["INPUTS/BoostedJets/MASK"] = to_np_array(fj_mask, max_n=n_fjets).astype("bool")
+    datasets["INPUTS/BoostedJets/fj_pt"] = to_np_array(fj_pt, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_eta"] = to_np_array(fj_eta, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_phi"] = to_np_array(fj_phi, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_sinphi"] = to_np_array(np.sin(fj_phi), max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_cosphi"] = to_np_array(np.cos(fj_phi), max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_mass"] = to_np_array(fj_mass, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_sdmass"] = to_np_array(fj_sdmass, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_tau21"] = to_np_array(fj_tau21, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_tau32"] = to_np_array(fj_tau32, max_n=n_fjets).astype("float32")
+    datasets["INPUTS/BoostedJets/fj_charge"] = to_np_array(fj_charge, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_ehadovereem"] = to_np_array(fj_ehadovereem, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_neutralenergyfrac"] = to_np_array(fj_neutralenergyfrac, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_chargedenergyfrac"] = to_np_array(fj_chargedenergyfrac, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_nneutral"] = to_np_array(fj_nneutral, max_n=n_fjets)
+    datasets["INPUTS/BoostedJets/fj_ncharged"] = to_np_array(fj_ncharged, max_n=n_fjets)
 
     datasets["TARGETS/h1/mask"] = h1_mask.to_numpy()
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
     datasets["TARGETS/h1/b2"] = h1_b2.to_numpy()
+    datasets["TARGETS/h1/pt"] = h1_pt.to_numpy()
 
     datasets["TARGETS/h2/mask"] = h2_mask.to_numpy()
     datasets["TARGETS/h2/b1"] = h2_b1.to_numpy()
     datasets["TARGETS/h2/b2"] = h2_b2.to_numpy()
+    datasets["TARGETS/h2/pt"] = h2_pt.to_numpy()
 
-    datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
-    datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
-    datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
+    if n_higgs == 3:
+        datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
+        datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
+        datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
+        datasets["TARGETS/h3/pt"] = h3_pt.to_numpy()
 
     datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
     datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy().reshape(h1_fj_mask.to_numpy().shape)
+    datasets["TARGETS/bh1/pt"] = bh1_pt.to_numpy()
 
     datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
     datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy().reshape(h2_fj_mask.to_numpy().shape)
+    datasets["TARGETS/bh2/pt"] = bh2_pt.to_numpy()
 
-    datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
-    datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
+    if n_higgs == 3:
+        datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
+        datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
+        datasets["TARGETS/bh3/pt"] = bh3_pt.to_numpy()
 
     return datasets
 
 
 @click.command()
 @click.argument("in-files", nargs=-1)
-@click.option("--out-file", default=f"{PROJECT_DIR}/data/delphes/hhh_training.h5", help="Output file.")
+@click.option(
+    "--out-file",
+    default=f"{PROJECT_DIR}/data/delphes/hhh_training.h5",
+    help="Output file.",
+)
 @click.option("--train-frac", default=0.95, help="Fraction for training.")
-def main(in_files, out_file, train_frac):
+@click.option(
+    "--n-higgs",
+    "n_higgs",
+    default=3,
+    type=click.IntRange(2, 3),
+    help="Number of Higgs bosons per event",
+)
+def main(in_files, out_file, train_frac, n_higgs):
     all_datasets = {}
     for file_name in in_files:
         with uproot.open(file_name) as in_file:
@@ -325,7 +345,7 @@ def main(in_files, out_file, train_frac):
                 + [key for key in events.keys() if "FatJet/FatJet." in key and "fBits" not in key]
             )
             arrays = events.arrays(keys, entry_start=entry_start, entry_stop=entry_stop)
-            datasets = get_datasets(arrays)
+            datasets = get_datasets(arrays, n_higgs)
             for dataset_name, data in datasets.items():
                 if dataset_name not in all_datasets:
                     all_datasets[dataset_name] = []
