@@ -9,7 +9,7 @@ def reset_collision_dp(dps, aps):
     ap_filter = aps < 1 / (13 * 13)
     dps_reset = dps
     dps_reset[ap_filter] = 0
-    return dps
+    return dps_rest
 
 
 def dp_to_HiggsNumProb(dps):
