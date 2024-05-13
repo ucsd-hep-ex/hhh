@@ -2,3 +2,5 @@
 *pyc
 .DS_Store
 *.egg-info
+notebooks/
+notebooks/plot_pur_eff_w_dict.ipynb
