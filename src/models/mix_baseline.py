@@ -1,15 +1,15 @@
 import itertools
 import logging
 from pathlib import Path
-import numba as nb
 
 import awkward as ak
 import click
 import h5py
+import numba as nb
 import numpy as np
 import vector
 
-#from src.data.cms.convert_to_h5 import MIN_JETS, N_JETS, N_FJETS
+# from src.data.cms.convert_to_h5 import MIN_JETS, N_JETS, N_FJETS
 
 vector.register_awkward()
 
@@ -19,6 +19,7 @@ N_JETS = 10
 HIGGS_MASS = 125
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
+
 
 # a function that loads jets from hhh_test.h5
 def load_jets(in_file):
@@ -31,43 +32,29 @@ def load_jets(in_file):
     mask = ak.Array(in_file["INPUTS"]["Jets"]["MASK"])
 
     jets = ak.zip(
-        {
-            "pt": pt,
-            "eta": eta,
-            "phi": phi,
-            "btag": btag,
-            "mass": mass,
-            "mask": mask
-        },
+        {"pt": pt, "eta": eta, "phi": phi, "btag": btag, "mass": mass, "mask": mask},
         with_name="Momentum4D",
     )
 
     return jets
 
+
 # a function that loads fat jets from hhh_test.h5
 def load_fjets(in_file):
-     # load fatjets from h5
+    # load fatjets from h5
     fj_pt = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_pt"])
     fj_eta = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_eta"])
     fj_phi = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_phi"])
     fj_mass = ak.Array(in_file["INPUTS"]["BoostedJets"]["fj_mass"])
     fj_mask = ak.Array(in_file["INPUTS"]["BoostedJets"]["MASK"])
 
-    fjets = ak.zip(
-        {
-            "pt": fj_pt,
-            "eta": fj_eta,
-            "phi": fj_phi,
-            'mass': fj_mass,
-            'mask': fj_mask
-        },
-        with_name="Momentum4D"
-    )
+    fjets = ak.zip({"pt": fj_pt, "eta": fj_eta, "phi": fj_phi, "mass": fj_mass, "mask": fj_mask}, with_name="Momentum4D")
 
     return fjets
 
+
 @nb.njit
-def match_fjet_to_jet(fjets, jets, builder, FJET_DR = 0.8):
+def match_fjet_to_jet(fjets, jets, builder, FJET_DR=0.8):
     for fjets_event, jets_event in zip(fjets, jets):
         builder.begin_list()
         for i, jet in enumerate(jets_event):
@@ -80,8 +67,10 @@ def match_fjet_to_jet(fjets, jets, builder, FJET_DR = 0.8):
 
     return builder
 
+
 def to_np_array(ak_array, axis=-1, max_n=10, pad=0):
     return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=axis), pad, axis=axis).to_numpy()
+
 
 @click.command()
 @click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
@@ -98,9 +87,9 @@ def main(test_file, pred_file):
     fj_idx = ak.local_index(fjs)
 
     # select real fjets based on pT and mass cut
-    fj_mask = fjs['mask']
-    fjmass_cond = (fjs['mass']>110) & (fjs['mass']<140)
-    fjpt_cond = fjs['pt']>300
+    fj_mask = fjs["mask"]
+    fjmass_cond = (fjs["mass"] > 110) & (fjs["mass"] < 140)
+    fjpt_cond = fjs["pt"] > 300
     fj_cond = fjmass_cond & fjpt_cond & fj_mask
     fjs_selected = fjs[fj_cond]
 
@@ -112,8 +101,8 @@ def main(test_file, pred_file):
     # convert indices to AP and DP
     bhs_dp = np.zeros(shape=bh_fj_idx.shape)
     fjs_ap = np.zeros(shape=bh_fj_idx.shape)
-    bhs_dp[bh_fj_idx!=-1] = 1
-    fjs_ap[bh_fj_idx!=-1] = 1
+    bhs_dp[bh_fj_idx != -1] = 1
+    fjs_ap[bh_fj_idx != -1] = 1
 
     # Remove Overlap jets
 
@@ -121,8 +110,8 @@ def main(test_file, pred_file):
     matched_fj_idx = match_fjet_to_jet(fjs_selected, js, ak.ArrayBuilder()).snapshot()
 
     # remove overlapped ak4jets and padded jets
-    unoverlapped = matched_fj_idx==-1
-    not_padded = js['mask']
+    unoverlapped = matched_fj_idx == -1
+    not_padded = js["mask"]
     j_cond = unoverlapped & not_padded
     js_selected = js[j_cond]
 
@@ -132,38 +121,40 @@ def main(test_file, pred_file):
     # and how many boosted Higgs that you have reconstructed
     N_jet = ak.num(js_selected, axis=-1).to_numpy(allow_missing=False)
     N_bH = ak.num(fjs_selected, axis=-1).to_numpy(allow_missing=False)
-    N_rH = np.minimum(np.floor(N_jet/2), 3-N_bH)
+    N_rH = np.minimum(np.floor(N_jet / 2), 3 - N_bH)
 
     # construct jet assignment look-up array that has
     # all combinations of input jets
     # for different numbers of resolved higgs and jets
     JET_ASSIGNMENTS = {}
-    for nH in range(0, 1+3):
+    for nH in range(0, 1 + 3):
         JET_ASSIGNMENTS[nH] = {}
-        for nj in range(0, nH*2):
+        for nj in range(0, nH * 2):
             JET_ASSIGNMENTS[nH][nj] = []
-        for nj in range(nH*2, N_JETS + 1):
+        for nj in range(nH * 2, N_JETS + 1):
             a = list(itertools.combinations(range(nj), 2))
-            b = np.array([ assignment for assignment in itertools.combinations(a, nH) if len(np.unique(assignment)) == nH*2])
+            b = np.array(
+                [assignment for assignment in itertools.combinations(a, nH) if len(np.unique(assignment)) == nH * 2]
+            )
             JET_ASSIGNMENTS[nH][nj] = b
 
     # just consider top 2*N_rH jets
     N_rH_max = 3
     event_idx = ak.local_index(N_rH)
 
-    rH_b1 = np.repeat(-1*np.ones(shape=N_rH.shape).reshape(1,-1), N_rH_max, axis=0)
-    rH_b2 = np.repeat(-1*np.ones(shape=N_rH.shape).reshape(1,-1), N_rH_max, axis=0)
+    rH_b1 = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
+    rH_b2 = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
 
-    rH_dp = np.repeat(-1*np.ones(shape=N_rH.shape).reshape(1,-1), N_rH_max, axis=0)
-    rH_ap = np.repeat(-1*np.ones(shape=N_rH.shape).reshape(1,-1), N_rH_max, axis=0)
+    rH_dp = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
+    rH_ap = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
 
-    for i in range(1, N_rH_max+1):
-        nj = 2*i
+    for i in range(1, N_rH_max + 1):
+        nj = 2 * i
 
         mask_i_rH = N_rH == i
         event_i_rH = event_idx[mask_i_rH]
 
-        mjj = (js[event_i_rH][:, JET_ASSIGNMENTS[i][nj][:,:,0]]+js[event_i_rH][:, JET_ASSIGNMENTS[i][nj][:,:,1]]).mass
+        mjj = (js[event_i_rH][:, JET_ASSIGNMENTS[i][nj][:, :, 0]] + js[event_i_rH][:, JET_ASSIGNMENTS[i][nj][:, :, 1]]).mass
         chi2 = ak.sum(np.square(mjj - HIGGS_MASS), axis=-1)
         chi2_argmin = ak.argmin(chi2, axis=-1)
 
@@ -180,25 +171,25 @@ def main(test_file, pred_file):
     # save all assignment to the h5file
     # boosted
     datasets = {}
-    datasets["TARGETS/bh1/bb"] = bh_fj_idx[:,0]+10
-    datasets["TARGETS/bh2/bb"] = bh_fj_idx[:,1]+10
-    datasets["TARGETS/bh3/bb"] = bh_fj_idx[:,2]+10
+    datasets["TARGETS/bh1/bb"] = bh_fj_idx[:, 0] + 10
+    datasets["TARGETS/bh2/bb"] = bh_fj_idx[:, 1] + 10
+    datasets["TARGETS/bh3/bb"] = bh_fj_idx[:, 2] + 10
 
-    datasets["TARGETS/bh1/detection_probability"] = bhs_dp[:,0]
-    datasets["TARGETS/bh2/detection_probability"] = bhs_dp[:,1]
-    datasets["TARGETS/bh3/detection_probability"] = bhs_dp[:,2]
+    datasets["TARGETS/bh1/detection_probability"] = bhs_dp[:, 0]
+    datasets["TARGETS/bh2/detection_probability"] = bhs_dp[:, 1]
+    datasets["TARGETS/bh3/detection_probability"] = bhs_dp[:, 2]
 
-    datasets["TARGETS/bh1/assignment_probability"] = bhs_dp[:,0]
-    datasets["TARGETS/bh2/assignment_probability"] = bhs_dp[:,1]
-    datasets["TARGETS/bh3/assignment_probability"] = bhs_dp[:,2]
+    datasets["TARGETS/bh1/assignment_probability"] = bhs_dp[:, 0]
+    datasets["TARGETS/bh2/assignment_probability"] = bhs_dp[:, 1]
+    datasets["TARGETS/bh3/assignment_probability"] = bhs_dp[:, 2]
 
     # resolved
-    for i in range(1, N_rH_max+1):
-        datasets[f"TARGETS/h{i}/b1"] = rH_b1[i-1]
-        datasets[f"TARGETS/h{i}/b2"] = rH_b2[i-1]
+    for i in range(1, N_rH_max + 1):
+        datasets[f"TARGETS/h{i}/b1"] = rH_b1[i - 1]
+        datasets[f"TARGETS/h{i}/b2"] = rH_b2[i - 1]
 
-        datasets[f"TARGETS/h{i}/detection_probability"] = rH_dp[i-1]
-        datasets[f"TARGETS/h{i}/assignment_probability"] = rH_ap[i-1]
+        datasets[f"TARGETS/h{i}/detection_probability"] = rH_dp[i - 1]
+        datasets[f"TARGETS/h{i}/assignment_probability"] = rH_ap[i - 1]
 
     all_datasets = {}
     for dataset_name, data in datasets.items():
@@ -217,6 +208,7 @@ def main(test_file, pred_file):
             output.create_dataset(dataset_name, data=concat_data)
 
     return
+
 
 if __name__ == "__main__":
     main()
