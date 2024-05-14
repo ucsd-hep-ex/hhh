@@ -75,7 +75,8 @@ def to_np_array(ak_array, axis=-1, max_n=10, pad=0):
 @click.command()
 @click.option("--test-file", default=f"{PROJECT_DIR}/data/hhh_testing.h5", help="File for testing")
 @click.option("--pred-file", default=f"{PROJECT_DIR}/mix_baseline_pred.h5", help="Output prediction file")
-def main(test_file, pred_file):
+@click.option("--n-higgs", default=3, help="Maximum number of Higgs bosons in any event")
+def main(test_file, pred_file, n_higgs):
     in_file = h5py.File(test_file)
 
     # Reconstruct boosted H
@@ -96,7 +97,7 @@ def main(test_file, pred_file):
     # save the qualified fjets indices
     # they will be bH candidates
     bh_fj_idx = fj_idx[fj_cond]
-    bh_fj_idx = to_np_array(bh_fj_idx, max_n=3, pad=-1)
+    bh_fj_idx = to_np_array(bh_fj_idx, max_n=n_higgs, pad=-1)
 
     # convert indices to AP and DP
     bhs_dp = np.zeros(shape=bh_fj_idx.shape)
@@ -121,13 +122,13 @@ def main(test_file, pred_file):
     # and how many boosted Higgs that you have reconstructed
     N_jet = ak.num(js_selected, axis=-1).to_numpy(allow_missing=False)
     N_bH = ak.num(fjs_selected, axis=-1).to_numpy(allow_missing=False)
-    N_rH = np.minimum(np.floor(N_jet / 2), 3 - N_bH)
+    N_rH = np.minimum(np.floor(N_jet / 2), n_higgs - N_bH)
 
     # construct jet assignment look-up array that has
     # all combinations of input jets
     # for different numbers of resolved higgs and jets
     JET_ASSIGNMENTS = {}
-    for nH in range(0, 1 + 3):
+    for nH in range(0, n_higgs+1):
         JET_ASSIGNMENTS[nH] = {}
         for nj in range(0, nH * 2):
             JET_ASSIGNMENTS[nH][nj] = []
@@ -139,16 +140,15 @@ def main(test_file, pred_file):
             JET_ASSIGNMENTS[nH][nj] = b
 
     # just consider top 2*N_rH jets
-    N_rH_max = 3
     event_idx = ak.local_index(N_rH)
 
-    rH_b1 = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
-    rH_b2 = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
+    rH_b1 = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), n_higgs, axis=0)
+    rH_b2 = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), n_higgs, axis=0)
 
-    rH_dp = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
-    rH_ap = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), N_rH_max, axis=0)
+    rH_dp = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), n_higgs, axis=0)
+    rH_ap = np.repeat(-1 * np.ones(shape=N_rH.shape).reshape(1, -1), n_higgs, axis=0)
 
-    for i in range(1, N_rH_max + 1):
+    for i in range(1, n_higgs + 1):
         nj = 2 * i
 
         mask_i_rH = N_rH == i
@@ -164,32 +164,24 @@ def main(test_file, pred_file):
             rH_dp[j][event_i_rH] = 1
             rH_ap[j][event_i_rH] = 1
 
-        for k in range(i, N_rH_max):
+        for k in range(i, n_higgs):
             rH_dp[k][event_i_rH] = 0
             rH_ap[k][event_i_rH] = 0
 
     # save all assignment to the h5file
     # boosted
     datasets = {}
-    datasets["TARGETS/bh1/bb"] = bh_fj_idx[:, 0] + 10
-    datasets["TARGETS/bh2/bb"] = bh_fj_idx[:, 1] + 10
-    datasets["TARGETS/bh3/bb"] = bh_fj_idx[:, 2] + 10
-
-    datasets["TARGETS/bh1/detection_probability"] = bhs_dp[:, 0]
-    datasets["TARGETS/bh2/detection_probability"] = bhs_dp[:, 1]
-    datasets["TARGETS/bh3/detection_probability"] = bhs_dp[:, 2]
-
-    datasets["TARGETS/bh1/assignment_probability"] = bhs_dp[:, 0]
-    datasets["TARGETS/bh2/assignment_probability"] = bhs_dp[:, 1]
-    datasets["TARGETS/bh3/assignment_probability"] = bhs_dp[:, 2]
+    for i in range(0, n_higgs):
+        datasets[f"TARGETS/bh{i+1}/bb"] = bh_fj_idx[:, i] + 10
+        datasets[f"TARGETS/bh{i+1}/detection_probability"] = bhs_dp[:, i]
+        datasets[f"TARGETS/bh{i+1}/assignment_probability"] = bhs_dp[:, i]
 
     # resolved
-    for i in range(1, N_rH_max + 1):
-        datasets[f"TARGETS/h{i}/b1"] = rH_b1[i - 1]
-        datasets[f"TARGETS/h{i}/b2"] = rH_b2[i - 1]
-
-        datasets[f"TARGETS/h{i}/detection_probability"] = rH_dp[i - 1]
-        datasets[f"TARGETS/h{i}/assignment_probability"] = rH_ap[i - 1]
+    for i in range(0, n_higgs):
+        datasets[f"TARGETS/h{i+1}/b1"] = rH_b1[i]
+        datasets[f"TARGETS/h{i+1}/b2"] = rH_b2[i]
+        datasets[f"TARGETS/h{i+1}/detection_probability"] = rH_dp[i]
+        datasets[f"TARGETS/h{i+1}/assignment_probability"] = rH_ap[i]
 
     all_datasets = {}
     for dataset_name, data in datasets.items():
