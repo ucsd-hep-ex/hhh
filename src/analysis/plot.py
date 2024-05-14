@@ -1,20 +1,19 @@
 import h5py as h5
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from src.analysis.boosted import parse_boosted_w_target
 from src.analysis.resolved import parse_resolved_w_target
-
 from src.analysis.utils import calc_eff, calc_pur
 
 
 def calc_pur_eff(target_path, pred_path, bins):
     # open files
-    pred_h5 = h5.File(pred_path, 'a')
+    pred_h5 = h5.File(pred_path, "a")
     target_h5 = h5.File(target_path)
 
     # handle different pl version
-    if 'TARGETS' not in pred_h5.keys():
+    if "TARGETS" not in pred_h5.keys():
         pred_h5["INPUTS"] = pred_h5["SpecialKey.Inputs"]
         pred_h5["TARGETS"] = pred_h5["SpecialKey.Targets"]
 
