@@ -191,7 +191,7 @@ def get_datasets(arrays, n_higgs):  # noqa: C901
     
     # add H mass info
     H_mh = higgses[mask_minjets].mass
-    H_mh = ak.fill_none(ak.pad_none(H_mh, target=3, axis=1, clip=True), 0)
+    H_mh = ak.fill_none(ak.pad_none(H_mh, target=3, axis=1, clip=True), -1)
 
     h1_mh, bh1_mh = H_mh[:,0], H_mh[:,0]
     h2_mh, bh2_mh = H_mh[:,1], H_mh[:,1]
