@@ -80,8 +80,8 @@ def calc_eff(LUT_boosted_pred, LUT_resolved_pred, bins):
     predHs_inds = np.digitize(predHs[:, 1], bins)
 
     correctTruth_per_bin = []
-    for bin_i in range(1, len(bins)+1):
-        correctTruth_per_bin.append(predHs[:,0][predHs_inds==bin_i])
+    for bin_i in range(1, len(bins) + 1):
+        correctTruth_per_bin.append(predHs[:, 0][predHs_inds == bin_i])
     correctTruth_per_bin = ak.Array(correctTruth_per_bin)
 
     means = ak.mean(correctTruth_per_bin, axis=-1)
@@ -120,8 +120,8 @@ def calc_pur(LUT_boosted_target, LUT_resolved_target, bins):
     targetHs_inds = np.digitize(targetHs[:, 1], bins)
 
     correctTruth_per_bin = []
-    for bin_i in range(1, len(bins)+1):
-        correctTruth_per_bin.append(targetHs[:,0][targetHs_inds==bin_i])
+    for bin_i in range(1, len(bins) + 1):
+        correctTruth_per_bin.append(targetHs[:, 0][targetHs_inds == bin_i])
     correctTruth_per_bin = ak.Array(correctTruth_per_bin)
 
     means = ak.mean(correctTruth_per_bin, axis=-1)
