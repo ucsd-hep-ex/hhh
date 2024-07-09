@@ -125,6 +125,6 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
         fig_m.savefig(f"{save_path}/{proj_name}_merged.png")
         fig_b.savefig(f"{save_path}/{proj_name}_boosted.png")
         fig_r.savefig(f"{save_path}/{proj_name}_resolved.png")
-        fig_r.savefig(f"{save_path}/{proj_name}_resolved_wOR.png")
+        fig_r_or.savefig(f"{save_path}/{proj_name}_resolved_wOR.png")
 
     return
