@@ -12,7 +12,7 @@ import numpy as np
 @click.option("--pred_file", "-pf", default=None, help="Path to your prediction file")
 @click.option("--plot_dir", "-pd", default=Path.cwd(), help="The directory for the generated purity and effficiency plots")
 @click.option("--test_name", "-tn", default="test", help="Provide a name for your test")
-@click.option("--cut", "-c", default=0.5, help="Enter your assignment probability cut")
+@click.option("--cut", "-c", default=0.5, help="Enter your detection probability cut")
 def main(test_file, pred_file, plot_dir, test_name, cut):
     if (test_file is None) or (pred_file is None):
         print("Please use -tf and -pd to input your test and prediction file")
@@ -20,8 +20,8 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
 
     # check if the efficiency and purity plot for this test has exist
     # return if exists
-    eff_file = Path(plot_dir).joinpath(f"{test_name}_eff_ap={cut}.jpg")
-    pur_file = Path(plot_dir).joinpath(f"{test_name}_pur_ap={cut}.jpg")
+    eff_file = Path(plot_dir).joinpath(f"{test_name}_eff_dp={cut}.jpg")
+    pur_file = Path(plot_dir).joinpath(f"{test_name}_pur_dp={cut}.jpg")
     if eff_file.exists() or pur_file.exists():
         print("The plot(s) for this test has been generated before. Please check your plots or enter another test name")
         return
@@ -31,61 +31,37 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
 
     # Collect H pt, mask, target and predicted jet and fjets for 3 Hs in each event
     # h pt
-    h1_pt = np.array(testfile["TARGETS"]["h1"]["pt"])
-    h2_pt = np.array(testfile["TARGETS"]["h2"]["pt"])
-    h3_pt = np.array(testfile["TARGETS"]["h3"]["pt"])
-
     bh1_pt = np.array(testfile["TARGETS"]["bh1"]["pt"])
     bh2_pt = np.array(testfile["TARGETS"]["bh2"]["pt"])
     bh3_pt = np.array(testfile["TARGETS"]["bh3"]["pt"])
 
     # mask
-    h1_mask = np.array(testfile["TARGETS"]["h1"]["mask"])
-    h2_mask = np.array(testfile["TARGETS"]["h2"]["mask"])
-    h3_mask = np.array(testfile["TARGETS"]["h3"]["mask"])
-
     bh1_mask = np.array(testfile["TARGETS"]["bh1"]["mask"])
     bh2_mask = np.array(testfile["TARGETS"]["bh2"]["mask"])
     bh3_mask = np.array(testfile["TARGETS"]["bh3"]["mask"])
 
     # target jet/fjets
-    b1_h1_t = np.array(testfile["TARGETS"]["h1"]["b1"])
-    b1_h2_t = np.array(testfile["TARGETS"]["h2"]["b1"])
-    b1_h3_t = np.array(testfile["TARGETS"]["h3"]["b1"])
-
-    b2_h1_t = np.array(testfile["TARGETS"]["h1"]["b2"])
-    b2_h2_t = np.array(testfile["TARGETS"]["h2"]["b2"])
-    b2_h3_t = np.array(testfile["TARGETS"]["h3"]["b2"])
-
     bb_bh1_t = np.array(testfile["TARGETS"]["bh1"]["bb"])
     bb_bh2_t = np.array(testfile["TARGETS"]["bh2"]["bb"])
     bb_bh3_t = np.array(testfile["TARGETS"]["bh3"]["bb"])
 
     # pred jet/fjets
-    b1_h1_p = np.array(predfile["TARGETS"]["h1"]["b1"])
-    b1_h2_p = np.array(predfile["TARGETS"]["h2"]["b1"])
-    b1_h3_p = np.array(predfile["TARGETS"]["h3"]["b1"])
-
-    b2_h1_p = np.array(predfile["TARGETS"]["h1"]["b2"])
-    b2_h2_p = np.array(predfile["TARGETS"]["h2"]["b2"])
-    b2_h3_p = np.array(predfile["TARGETS"]["h3"]["b2"])
-
     bb_bh1_p = np.array(predfile["TARGETS"]["bh1"]["bb"])
     bb_bh2_p = np.array(predfile["TARGETS"]["bh2"]["bb"])
     bb_bh3_p = np.array(predfile["TARGETS"]["bh3"]["bb"])
 
     # fatjet assignment probability
-    ap_bh1 = np.array(predfile["TARGETS"]["bh1"]["assignment_probability"])
-    ap_bh2 = np.array(predfile["TARGETS"]["bh2"]["assignment_probability"])
-    ap_bh3 = np.array(predfile["TARGETS"]["bh3"]["assignment_probability"])
+    dp_bh1 = np.array(predfile["TARGETS"]["bh1"]["detection_probability"])
+    dp_bh2 = np.array(predfile["TARGETS"]["bh2"]["detection_probability"])
+    dp_bh3 = np.array(predfile["TARGETS"]["bh3"]["detection_probability"])
 
     # collect fatjet pt
     fj_pts = np.array(testfile["INPUTS"]["BoostedJets"]["fj_pt"])
 
     # Calculating efficiency
     # convert some arrays to ak array
-    aps = np.concatenate((ap_bh1.reshape(-1, 1), ap_bh2.reshape(-1, 1), ap_bh3.reshape(-1, 1)), axis=1)
-    aps = ak.Array(aps)
+    dps = np.concatenate((dp_bh1.reshape(-1, 1), dp_bh2.reshape(-1, 1), dp_bh3.reshape(-1, 1)), axis=1)
+    dps = ak.Array(dps)
     bb_ps = np.concatenate((bb_bh1_p.reshape(-1, 1), bb_bh2_p.reshape(-1, 1), bb_bh3_p.reshape(-1, 1)), axis=1)
     bb_ps = ak.Array(bb_ps)
     bb_ts = np.concatenate((bb_bh1_t.reshape(-1, 1), bb_bh2_t.reshape(-1, 1), bb_bh3_t.reshape(-1, 1)), axis=1)
@@ -93,16 +69,16 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
     fj_pts = ak.Array(fj_pts)
 
     # p: prediction
-    AP_threshold = cut
-    ap_filter = aps > AP_threshold
-    bb_ps_passed = bb_ps.mask[ap_filter]
+    DP_threshold = cut
+    dp_filter = dps > DP_threshold
+    bb_ps_passed = bb_ps.mask[dp_filter]
     bb_ps_passed = ak.drop_none(bb_ps_passed)
 
-    aps_passed = aps.mask[ap_filter]
-    aps_passed = ak.drop_none(aps_passed)
+    dps_passed = dps.mask[dp_filter]
+    dps_passed = ak.drop_none(dps_passed)
 
-    sort_by_ap = ak.argsort(aps_passed, axis=-1, ascending=False)
-    bb_ps_passed = bb_ps_passed[sort_by_ap]
+    sort_by_dp = ak.argsort(dps_passed, axis=-1, ascending=False)
+    bb_ps_passed = bb_ps_passed[sort_by_dp]
 
     bh_effs = []
     # for each event
@@ -143,7 +119,7 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
     ax.set(
         xlabel=r"reco H pT",
         ylabel=r"Matching efficiency",
-        title=f"SPANet Boosted H Matching Efficiency vs. Reco H pT, AP cut at {cut}",
+        title=f"SPANet Boosted H Matching Efficiency vs. Reco H pT, DP cut at {cut}",
     )
     plt.tight_layout()
     plt.savefig(eff_file)
@@ -200,7 +176,7 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
     ax.set(
         xlabel=r"gen H pT",
         ylabel=r"Matching purity",
-        title=f"SPANet Boosted H Matching purity vs. gen H pT, AP cut at {cut}",
+        title=f"SPANet Boosted H Matching purity vs. gen H pT, DP cut at {cut}",
     )
     plt.tight_layout()
     plt.savefig(pur_file)

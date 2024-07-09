@@ -1,20 +1,18 @@
-import click
 from pathlib import Path
 
 import awkward as ak
-import numpy as np
-
-import matplotlib.pyplot as plt
-
+import click
 import h5py as h5
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 @click.command()
-@click.option('--test_file', '-tf', default=None, help='Path to your test file')
-@click.option('--pred_file', '-pf', default=None, help='Path to your prediction file')
-@click.option('--plot_dir', '-pd', default=Path.cwd(), help='The directory for the generated purity and effficiency plots')
-@click.option('--test_name', '-tn', default='test', help='Provide a name for your test')
-@click.option('--cut', '-c', default=0.5, help='Enter your detection probability cut')
+@click.option("--test_file", "-tf", default=None, help="Path to your test file")
+@click.option("--pred_file", "-pf", default=None, help="Path to your prediction file")
+@click.option("--plot_dir", "-pd", default=Path.cwd(), help="The directory for the generated purity and effficiency plots")
+@click.option("--test_name", "-tn", default="test", help="Provide a name for your test")
+@click.option("--cut", "-c", default=0.5, help="Enter your detection probability cut")
 def main(test_file, pred_file, plot_dir, test_name, cut):
     if (test_file is None) or (pred_file is None):
         print("Please use -tf and -pd to input your test and prediction file")
@@ -25,7 +23,7 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
     eff_file = Path(plot_dir).joinpath(f"{test_name}_eff_dp={cut}.jpg")
     pur_file = Path(plot_dir).joinpath(f"{test_name}_pur_dp={cut}.jpg")
     if eff_file.exists() or pur_file.exists():
-        print('The plot(s) for this test has been generated before. Please check your plots or enter another test name')
+        print("The plot(s) for this test has been generated before. Please check your plots or enter another test name")
         return
 
     testfile = h5.File(test_file)
@@ -33,57 +31,56 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
 
     # Collect H pt, mask, target and predicted jet and fjets for 3 Hs in each event
     # h pt
-    h1_pt = np.array(testfile['TARGETS']['h1']['pt'])
-    h2_pt = np.array(testfile['TARGETS']['h2']['pt'])
-    h3_pt = np.array(testfile['TARGETS']['h3']['pt'])
+    h1_pt = np.array(testfile["TARGETS"]["h1"]["pt"])
+    h2_pt = np.array(testfile["TARGETS"]["h2"]["pt"])
+    h3_pt = np.array(testfile["TARGETS"]["h3"]["pt"])
 
-    bh1_pt = np.array(testfile['TARGETS']['bh1']['pt'])
-    bh2_pt = np.array(testfile['TARGETS']['bh2']['pt'])
-    bh3_pt = np.array(testfile['TARGETS']['bh3']['pt'])
+    bh1_pt = np.array(testfile["TARGETS"]["bh1"]["pt"])
+    bh2_pt = np.array(testfile["TARGETS"]["bh2"]["pt"])
+    bh3_pt = np.array(testfile["TARGETS"]["bh3"]["pt"])
 
     # mask
-    h1_mask = np.array(testfile['TARGETS']['h1']['mask'])
-    h2_mask = np.array(testfile['TARGETS']['h2']['mask'])
-    h3_mask = np.array(testfile['TARGETS']['h3']['mask'])
+    h1_mask = np.array(testfile["TARGETS"]["h1"]["mask"])
+    h2_mask = np.array(testfile["TARGETS"]["h2"]["mask"])
+    h3_mask = np.array(testfile["TARGETS"]["h3"]["mask"])
 
-    bh1_mask = np.array(testfile['TARGETS']['bh1']['mask'])
-    bh2_mask = np.array(testfile['TARGETS']['bh2']['mask'])
-    bh3_mask = np.array(testfile['TARGETS']['bh3']['mask'])
+    bh1_mask = np.array(testfile["TARGETS"]["bh1"]["mask"])
+    bh2_mask = np.array(testfile["TARGETS"]["bh2"]["mask"])
+    bh3_mask = np.array(testfile["TARGETS"]["bh3"]["mask"])
 
     # target jet/fjets
-    b1_h1_t = np.array(testfile["TARGETS"]["h1"]['b1'])
-    b1_h2_t = np.array(testfile["TARGETS"]["h2"]['b1'])
-    b1_h3_t = np.array(testfile["TARGETS"]["h3"]['b1'])
+    b1_h1_t = np.array(testfile["TARGETS"]["h1"]["b1"])
+    b1_h2_t = np.array(testfile["TARGETS"]["h2"]["b1"])
+    b1_h3_t = np.array(testfile["TARGETS"]["h3"]["b1"])
 
-    b2_h1_t = np.array(testfile["TARGETS"]["h1"]['b2'])
-    b2_h2_t = np.array(testfile["TARGETS"]["h2"]['b2'])
-    b2_h3_t = np.array(testfile["TARGETS"]["h3"]['b2'])
+    b2_h1_t = np.array(testfile["TARGETS"]["h1"]["b2"])
+    b2_h2_t = np.array(testfile["TARGETS"]["h2"]["b2"])
+    b2_h3_t = np.array(testfile["TARGETS"]["h3"]["b2"])
 
-    bb_bh1_t = np.array(testfile["TARGETS"]["bh1"]['bb'])
-    bb_bh2_t = np.array(testfile["TARGETS"]["bh2"]['bb'])
-    bb_bh3_t = np.array(testfile["TARGETS"]["bh3"]['bb'])
+    bb_bh1_t = np.array(testfile["TARGETS"]["bh1"]["bb"])
+    bb_bh2_t = np.array(testfile["TARGETS"]["bh2"]["bb"])
+    bb_bh3_t = np.array(testfile["TARGETS"]["bh3"]["bb"])
 
     # pred jet/fjets
-    b1_h1_p = np.array(predfile["TARGETS"]["h1"]['b1'])
-    b1_h2_p = np.array(predfile["TARGETS"]["h2"]['b1'])
-    b1_h3_p = np.array(predfile["TARGETS"]["h3"]['b1'])
+    b1_h1_p = np.array(predfile["TARGETS"]["h1"]["b1"])
+    b1_h2_p = np.array(predfile["TARGETS"]["h2"]["b1"])
+    b1_h3_p = np.array(predfile["TARGETS"]["h3"]["b1"])
 
-    b2_h1_p = np.array(predfile["TARGETS"]["h1"]['b2'])
-    b2_h2_p = np.array(predfile["TARGETS"]["h2"]['b2'])
-    b2_h3_p = np.array(predfile["TARGETS"]["h3"]['b2'])
+    b2_h1_p = np.array(predfile["TARGETS"]["h1"]["b2"])
+    b2_h2_p = np.array(predfile["TARGETS"]["h2"]["b2"])
+    b2_h3_p = np.array(predfile["TARGETS"]["h3"]["b2"])
 
-    bb_bh1_p = np.array(predfile["TARGETS"]["bh1"]['bb'])
-    bb_bh2_p = np.array(predfile["TARGETS"]["bh2"]['bb'])
-    bb_bh3_p = np.array(predfile["TARGETS"]["bh3"]['bb'])
-
+    bb_bh1_p = np.array(predfile["TARGETS"]["bh1"]["bb"])
+    bb_bh2_p = np.array(predfile["TARGETS"]["bh2"]["bb"])
+    bb_bh3_p = np.array(predfile["TARGETS"]["bh3"]["bb"])
 
     # fatjet assignment probability
-    dp_bh1 = np.array(predfile["TARGETS"]["bh1"]['detection_probability'])
-    dp_bh2 = np.array(predfile["TARGETS"]["bh2"]['detection_probability'])
-    dp_bh3 = np.array(predfile["TARGETS"]["bh3"]['detection_probability'])
+    dp_bh1 = np.array(predfile["TARGETS"]["bh1"]["detection_probability"])
+    dp_bh2 = np.array(predfile["TARGETS"]["bh2"]["detection_probability"])
+    dp_bh3 = np.array(predfile["TARGETS"]["bh3"]["detection_probability"])
 
     # collect fatjet pt
-    fj_pts = np.array(testfile['INPUTS']['BoostedJets']['fj_pt'])
+    fj_pts = np.array(testfile["INPUTS"]["BoostedJets"]["fj_pt"])
 
     # Calculating efficiency
     # convert some arrays to ak array
@@ -115,18 +112,18 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
             match = 0
             matched_bb_t = -1
             for bb_t in bb_t_event:
-                if bb_p == bb_t+10:
+                if bb_p == bb_t + 10:
                     match = 1
                     matched_bb_t = bb_t
-            if match>0:
+            if match > 0:
                 bh_effs.append([fj_pt_event[matched_bb_t], match])
             else:
-                bh_effs.append([fj_pt_event[bb_p-10], 0])
+                bh_effs.append([fj_pt_event[bb_p - 10], 0])
     bh_effs = np.array(bh_effs)
 
     # set x axis (pT) of the scattered points
     bins = np.arange(200, 1000, 100)
-    bin_centers = [(bins[i]+bins[i+1])/2 for i in range(bins.size-1)]
+    bin_centers = [(bins[i] + bins[i + 1]) / 2 for i in range(bins.size - 1)]
 
     # group points into bins by fatjet pT
     eff_inds = np.digitize(bh_effs[:, 0], bins)
@@ -140,8 +137,19 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
         print(f"{ak.sum(effs)} out of {ak.count(effs)} assignment agrees with target in bin centered at {bin_c} GeV")
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.errorbar(x=bin_centers, y=ak.mean(effs_per_bin, axis=-1), xerr=(bins[1]-bins[0])/2*np.ones(bins.shape[0]-1), yerr=1/np.sqrt(ak.count(effs_per_bin, axis=-1).to_numpy()), fmt='o', capsize=5)
-    ax.set(xlabel=r"reco H pT", ylabel=r"Matching efficiency", title=f"SPANet Boosted H Matching Efficiency vs. Reco H pT, DP cut at {cut}")
+    ax.errorbar(
+        x=bin_centers,
+        y=ak.mean(effs_per_bin, axis=-1),
+        xerr=(bins[1] - bins[0]) / 2 * np.ones(bins.shape[0] - 1),
+        yerr=1 / np.sqrt(ak.count(effs_per_bin, axis=-1).to_numpy()),
+        fmt="o",
+        capsize=5,
+    )
+    ax.set(
+        xlabel=r"reco H pT",
+        ylabel=r"Matching efficiency",
+        title=f"SPANet Boosted H Matching Efficiency vs. Reco H pT, DP cut at {cut}",
+    )
     plt.tight_layout()
     plt.savefig(eff_file)
 
@@ -166,7 +174,7 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
         for i, bb_t in enumerate(bb_t_event):
             match = 0
             for bb_p in bb_p_event:
-                if bb_p == bb_t+10:
+                if bb_p == bb_t + 10:
                     match = 1
             bh_purs.append([bh_pt_event[i], match])
     bh_purs = np.array(bh_purs)
@@ -181,17 +189,31 @@ def main(test_file, pred_file, plot_dir, test_name, cut):
     purs_per_bin = ak.Array(purs_per_bin)
 
     for purs, bin_c in zip(purs_per_bin, bin_centers):
-        print(f"{ak.sum(purs)} out of {ak.count(purs)} target assignments are matched to >=1 predicted assignment in bin centered at {bin_c} GeV")
+        print(
+            f"{ak.sum(purs)} out of {ak.count(purs)} target assignments are matched to >=1 predicted assignment in bin centered at {bin_c} GeV"
+        )
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.errorbar(x=bin_centers, y=ak.mean(purs_per_bin, axis=-1), xerr=(bins[1]-bins[0])/2*np.ones(bins.shape[0]-1), yerr=1/np.sqrt(ak.count(purs_per_bin, axis=-1).to_numpy()), fmt='o', capsize=5)
-    ax.set(xlabel=r"gen H pT", ylabel=r"Matching purity", title=f"SPANet Boosted H Matching purity vs. gen H pT, DP cut at {cut}")
+    ax.errorbar(
+        x=bin_centers,
+        y=ak.mean(purs_per_bin, axis=-1),
+        xerr=(bins[1] - bins[0]) / 2 * np.ones(bins.shape[0] - 1),
+        yerr=1 / np.sqrt(ak.count(purs_per_bin, axis=-1).to_numpy()),
+        fmt="o",
+        capsize=5,
+    )
+    ax.set(
+        xlabel=r"gen H pT",
+        ylabel=r"Matching purity",
+        title=f"SPANet Boosted H Matching purity vs. gen H pT, DP cut at {cut}",
+    )
     plt.tight_layout()
     plt.savefig(pur_file)
-    
-    print('All plots are generated')
+
+    print("All plots are generated")
 
     return
+
 
 if __name__ == "__main__":
     main()
