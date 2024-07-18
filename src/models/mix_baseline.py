@@ -111,7 +111,7 @@ def main(test_file, pred_file, n_higgs):
     # matched_fj_idx = match_fjet_to_jet(fjs_selected, js, ak.ArrayBuilder()).snapshot()
 
     # remove padded jets
-    not_padded = js['mask']
+    not_padded = js["mask"]
     j_cond = not_padded
 
     js_selected = js[j_cond]
@@ -128,7 +128,7 @@ def main(test_file, pred_file, n_higgs):
     # all combinations of input jets
     # for different numbers of resolved higgs and jets
     JET_ASSIGNMENTS = {}
-    for nH in range(0, n_higgs+1):
+    for nH in range(0, n_higgs + 1):
         JET_ASSIGNMENTS[nH] = {}
         for nj in range(0, nH * 2):
             JET_ASSIGNMENTS[nH][nj] = []
