@@ -88,83 +88,66 @@ def gen_target_bH_LUT(bb_ps_passed, bb_ts_selected, targetH_pts):
 # each entry corresponds to [recoH correct or not, reco H pt]
 # or
 # [targetH retrieved or not, target H pt]
-def parse_boosted_w_target(testfile, predfile):
-    # Collect H pt, mask, target and predicted jet and fjets for 3 Hs in each event
-    # h pt
-    bh1_pt = np.array(testfile["TARGETS"]["bh1"]["pt"])
-    bh2_pt = np.array(testfile["TARGETS"]["bh2"]["pt"])
-    bh3_pt = np.array(testfile["TARGETS"]["bh3"]["pt"])
+def parse_boosted_w_target(testfile, predfile, num_higgs=3):
+    # Initialize lists to store variables dynamically
+    dp_bh = []
+    ap_bh = []
+    bb_bh_p = []
+    bb_bh_t = []
+    bh_masks_list = []
+    bh_pts_list = []
 
-    # mask
-    bh1_mask = np.array(testfile["TARGETS"]["bh1"]["mask"])
-    bh2_mask = np.array(testfile["TARGETS"]["bh2"]["mask"])
-    bh3_mask = np.array(testfile["TARGETS"]["bh3"]["mask"])
+    for i in range(1, num_higgs + 1):
+        # Collect target pt, mask, and assignment for each Higgs
+        bh_pt = np.array(testfile['TARGETS'][f'bh{i}']['pt'])
+        bh_mask = np.array(testfile['TARGETS'][f'bh{i}']['mask'])
+        bb_bh_t.append(np.array(testfile['TARGETS'][f'bh{i}']['bb']))
+        bh_masks_list.append(bh_mask.reshape(-1, 1))
+        bh_pts_list.append(bh_pt.reshape(-1, 1))
 
-    # target assignment
-    bb_bh1_t = np.array(testfile["TARGETS"]["bh1"]["bb"])
-    bb_bh2_t = np.array(testfile["TARGETS"]["bh2"]["bb"])
-    bb_bh3_t = np.array(testfile["TARGETS"]["bh3"]["bb"])
+        try:
+            # Collect predicted assignment, detection probability, and fatjet assignment probability
+            bb_bh_p.append(np.array(predfile['TARGETS'][f'bh{i}']['bb']))
+            dp_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['detection_probability']))
+            ap_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['assignment_probability']))
+        except:
+            # In case of missing prediction, apply fallback logic
+            bb_bh_p.append(np.array(predfile['TARGETS'][f'bh{i}']['bb']) + 10)
+            dp_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['mask']).astype('float'))
+            ap_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['mask']).astype('float'))
 
-    try:
-        # pred assignment
-        bb_bh1_p = np.array(predfile["TARGETS"]["bh1"]["bb"])
-        bb_bh2_p = np.array(predfile["TARGETS"]["bh2"]["bb"])
-        bb_bh3_p = np.array(predfile["TARGETS"]["bh3"]["bb"])
+    # Collect fatjet pt
+    fj_pt = np.array(testfile['INPUTS']['BoostedJets']['fj_pt'])
 
-        # boosted Higgs detection probability
-        dp_bh1 = np.array(predfile["TARGETS"]["bh1"]["detection_probability"])
-        dp_bh2 = np.array(predfile["TARGETS"]["bh2"]["detection_probability"])
-        dp_bh3 = np.array(predfile["TARGETS"]["bh3"]["detection_probability"])
+    # Concatenate detection and assignment probabilities into arrays
+    dps = np.concatenate([dp.reshape(-1, 1) for dp in dp_bh], axis=1)
+    aps = np.concatenate([ap.reshape(-1, 1) for ap in ap_bh], axis=1)
 
-        # fatjet assignment probability
-        ap_bh1 = np.array(predfile["TARGETS"]["bh1"]["assignment_probability"])
-        ap_bh2 = np.array(predfile["TARGETS"]["bh2"]["assignment_probability"])
-        ap_bh3 = np.array(predfile["TARGETS"]["bh3"]["assignment_probability"])
-    except:
-        # pred assignment
-        bb_bh1_p = np.array(predfile["TARGETS"]["bh1"]["bb"]) + 10
-        bb_bh2_p = np.array(predfile["TARGETS"]["bh2"]["bb"]) + 10
-        bb_bh3_p = np.array(predfile["TARGETS"]["bh3"]["bb"]) + 10
-
-        # boosted Higgs detection probability
-        dp_bh1 = np.array(predfile["TARGETS"]["bh1"]["mask"]).astype("float")
-        dp_bh2 = np.array(predfile["TARGETS"]["bh2"]["mask"]).astype("float")
-        dp_bh3 = np.array(predfile["TARGETS"]["bh3"]["mask"]).astype("float")
-
-        # fatjet assignment probability
-        ap_bh1 = np.array(predfile["TARGETS"]["bh1"]["mask"]).astype("float")
-        ap_bh2 = np.array(predfile["TARGETS"]["bh2"]["mask"]).astype("float")
-        ap_bh3 = np.array(predfile["TARGETS"]["bh3"]["mask"]).astype("float")
-
-    # collect fatjet pt
-    fj_pt = np.array(testfile["INPUTS"]["BoostedJets"]["fj_pt"])
-
-    dps = np.concatenate((dp_bh1.reshape(-1, 1), dp_bh2.reshape(-1, 1), dp_bh3.reshape(-1, 1)), axis=1)
-    aps = np.concatenate((ap_bh1.reshape(-1, 1), ap_bh2.reshape(-1, 1), ap_bh3.reshape(-1, 1)), axis=1)
-
-    # convert some arrays to ak array
-    bb_ps = np.concatenate((bb_bh1_p.reshape(-1, 1), bb_bh2_p.reshape(-1, 1), bb_bh3_p.reshape(-1, 1)), axis=1)
+    # Convert bb predictions and targets to awkward arrays
+    bb_ps = np.concatenate([bb.reshape(-1, 1) for bb in bb_bh_p], axis=1)
     bb_ps = ak.Array(bb_ps)
-    bb_ts = np.concatenate((bb_bh1_t.reshape(-1, 1), bb_bh2_t.reshape(-1, 1), bb_bh3_t.reshape(-1, 1)), axis=1)
+    bb_ts = np.concatenate([bb.reshape(-1, 1) for bb in bb_bh_t], axis=1)
     bb_ts = ak.Array(bb_ts)
     fj_pt = ak.Array(fj_pt)
-    bh_masks = np.concatenate((bh1_mask.reshape(-1, 1), bh2_mask.reshape(-1, 1), bh3_mask.reshape(-1, 1)), axis=1)
+
+    # Combine masks and pt values dynamically for all Higgs
+    bh_masks = np.concatenate(bh_masks_list, axis=1)
     bh_masks = ak.Array(bh_masks)
-    bh_pts = np.concatenate((bh1_pt.reshape(-1, 1), bh2_pt.reshape(-1, 1), bh3_pt.reshape(-1, 1)), axis=1)
+    bh_pts = np.concatenate(bh_pts_list, axis=1)
     bh_pts = ak.Array(bh_pts)
 
-    # select predictions and targets
+    # Select predictions and targets
     bb_ps_selected = sel_pred_bH_by_dp_ap(dps, aps, bb_ps)
     bb_ts_selected, targetH_selected_pts = sel_target_bH_by_mask(bb_ts, bh_pts, bh_masks)
 
-    # generate correct/retrieved LUT for pred/target respectively
+    # Generate correct/retrieved LUT for pred/target respectively
     LUT_pred = gen_pred_bH_LUT(bb_ps_selected, bb_ts_selected, fj_pt)
     LUT_target = gen_target_bH_LUT(bb_ps_selected, bb_ts_selected, targetH_selected_pts)
 
-    # reconstruct bH to remove overlapped ak4 jets
-    fj_eta = np.array(testfile["INPUTS"]["BoostedJets"]["fj_eta"])
-    fj_phi = np.array(testfile["INPUTS"]["BoostedJets"]["fj_phi"])
-    fj_mass = np.array(testfile["INPUTS"]["BoostedJets"]["fj_mass"])
+    # Reconstruct bH to remove overlapped ak4 jets
+    fj_eta = np.array(testfile['INPUTS']['BoostedJets']['fj_eta'])
+    fj_phi = np.array(testfile['INPUTS']['BoostedJets']['fj_phi'])
+    fj_mass = np.array(testfile['INPUTS']['BoostedJets']['fj_mass'])
 
     fjs = ak.zip(
         {
@@ -173,8 +156,10 @@ def parse_boosted_w_target(testfile, predfile):
             "phi": fj_phi,
             "mass": fj_mass,
         },
-        with_name="Momentum4D",
+        with_name="Momentum4D"
     )
     fj_reco = fjs[bb_ps_selected - 10]
 
+    # Return the predicted and target LUTs and the reconstructed jets
     return LUT_pred, LUT_target, fj_reco
+

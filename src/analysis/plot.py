@@ -40,17 +40,22 @@ def calc_pur_eff(target_path, pred_path, bins):
 
     # calculate efficiencies and purities for b+r, b, and r
     results = {}
-    results["pur_m"], results["purerr_m"] = calc_eff(LUT_boosted_pred, LUT_resolved_wOR_pred, bins)
-    results["eff_m"], results["efferr_m"] = calc_pur(LUT_boosted_target, LUT_resolved_wOR_target, bins)
+    results["pur_m"], results["purerr_m"], avg_pur_m = calc_eff(LUT_boosted_pred, LUT_resolved_wOR_pred, bins)
+    results["eff_m"], results["efferr_m"], avg_eff_m = calc_pur(LUT_boosted_target, LUT_resolved_wOR_target, bins)
 
-    results["pur_b"], results["purerr_b"] = calc_eff(LUT_boosted_pred, None, bins)
-    results["eff_b"], results["efferr_b"] = calc_pur(LUT_boosted_target, None, bins)
+    results["pur_b"], results["purerr_b"], avg_pur_b = calc_eff(LUT_boosted_pred, None, bins)
+    results["eff_b"], results["efferr_b"], avg_eff_b = calc_pur(LUT_boosted_target, None, bins)
 
-    results["pur_r"], results["purerr_r"] = calc_eff(None, LUT_resolved_pred, bins)
-    results["eff_r"], results["efferr_r"] = calc_pur(None, LUT_resolved_target, bins)
+    results["pur_r"], results["purerr_r"], avg_pur_r = calc_eff(None, LUT_resolved_pred, bins)
+    results["eff_r"], results["efferr_r"], avg_eff_r = calc_pur(None, LUT_resolved_target, bins)
 
-    results["pur_r_or"], results["purerr_r_or"] = calc_eff(None, LUT_resolved_pred_no_OR, bins)
-    results["eff_r_or"], results["efferr_r_or"] = calc_pur(None, LUT_resolved_target_no_OR, bins)
+    results["pur_r_or"], results["purerr_r_or"], _ = calc_eff(None, LUT_resolved_pred_no_OR, bins)
+    results["eff_r_or"], results["efferr_r_or"], _ = calc_pur(None, LUT_resolved_target_no_OR, bins)
+    
+    print("Average purity:")
+    print("merged", avg_pur_m, "boosted", avg_pur_b, "resolved", avg_pur_r)
+    print("Average efficiency:")
+    print("merged", avg_eff_m, "boosted", avg_eff_b, "resolved", avg_eff_r)
 
     print("Number of Boosted Prediction:", np.array([pred for event in LUT_boosted_pred for pred in event]).shape[0])
     print(
