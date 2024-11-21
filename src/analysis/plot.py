@@ -51,7 +51,7 @@ def calc_pur_eff(target_path, pred_path, bins):
 
     results["pur_r_or"], results["purerr_r_or"], _ = calc_eff(None, LUT_resolved_pred_no_OR, bins)
     results["eff_r_or"], results["efferr_r_or"], _ = calc_pur(None, LUT_resolved_target_no_OR, bins)
-    
+
     print("Average purity:")
     print("merged", avg_pur_m, "boosted", avg_pur_b, "resolved", avg_pur_r)
     print("Average efficiency:")
@@ -90,44 +90,44 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
 
     # preset figure labels, titles, limits, etc.
     ax_m[0].set(
-        xlabel=r"Merged Reco H pT (GeV)",
+        xlabel=r"Reco. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Purity",
-        title=f"Reconstruction Purity vs. Merged Reco H pT",
+        # title=f"Reconstruction Purity vs. Merged Reco H pT",
     )
     ax_m[1].set(
-        xlabel=r"Merged Gen H pT (GeV)",
+        xlabel=r"Gen. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Efficiency",
-        title=f"Reconstruction Efficiency vs. Merged Gen H pT",
+        # title=f"Reconstruction Efficiency vs. Merged Gen H pT",
     )
     ax_b[0].set(
-        xlabel=r"Reco Boosted H pT (GeV)",
+        xlabel=r"Reco. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Purity",
-        title=f"Reconstruction Purity vs. Reco Boosted H pT",
+        # title=f"Reconstruction Purity vs. Reco Boosted H pT",
     )
     ax_b[1].set(
-        xlabel=r"Gen Boosted H pT (GeV)",
+        xlabel=r"Gen. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Efficiency",
-        title=f"Reconstruction Efficiency vs. Gen Boosted H pT",
+        # title=f"Reconstruction Efficiency vs. Gen Boosted H pT",
     )
     ax_r[0].set(
-        xlabel=r"Reco Resolved H pT (GeV)",
+        xlabel=r"Reco. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Purity",
-        title=f"Reconstruction Purity vs. Reco Resolved H pT",
+        # title=f"Reconstruction Purity vs. Reco Resolved H pT",
     )
     ax_r[1].set(
-        xlabel=r"Gen Resolved H pT (GeV)",
+        xlabel=r"Gen. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Efficiency",
-        title=f"Reconstruction Efficiency vs. Gen Resolved H pT",
+        # title=f"Reconstruction Efficiency vs. Gen Resolved H pT",
     )
     ax_r_or[0].set(
-        xlabel=r"Reco Resolved H pT (GeV)",
+        xlabel=r"Reco. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Purity",
-        title=f"Resolved Purity After OR  vs. Reco Resolved H pT",
+        # title=f"Resolved Purity After OR  vs. Reco Resolved H pT",
     )
     ax_r_or[1].set(
-        xlabel=r"Gen Resolved H pT (GeV)",
+        xlabel=r"Gen. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Efficiency",
-        title=f"Resolved Efficiency After OR vs. Gen Resolved H pT",
+        # title=f"Resolved Efficiency After OR vs. Gen Resolved H pT",
     )
 
     # plot purities and efficiencies
@@ -160,29 +160,29 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
         )
 
     # adjust limits and legends
-    ax_m[0].legend()
-    ax_m[1].legend()
+    ax_m[0].legend(title='HHH Resolved+Boosted')
+    ax_m[1].legend(title='HHH Resolved+Boosted')
     ax_m[0].set_ylim([-0.1, 1.1])
     ax_m[1].set_ylim([-0.1, 1.1])
-    ax_b[0].legend()
-    ax_b[1].legend()
+    ax_b[0].legend(title='HHH Boosted')
+    ax_b[1].legend(title='HHH Boosted')
     ax_b[0].set_ylim([-0.1, 1.1])
     ax_b[1].set_ylim([-0.1, 1.1])
-    ax_r[0].legend()
-    ax_r[1].legend()
+    ax_r[0].legend(title='HHH Resolved')
+    ax_r[1].legend(title='HHH Resolved')
     ax_r[0].set_ylim([-0.1, 1.1])
     ax_r[1].set_ylim([-0.1, 1.1])
-    ax_r_or[0].legend()
-    ax_r_or[1].legend()
+    ax_r_or[0].legend(title='HHH Resolved+OR')
+    ax_r_or[1].legend(title='HHH Resolved+OR')
     ax_r_or[0].set_ylim([-0.1, 1.1])
     ax_r_or[1].set_ylim([-0.1, 1.1])
 
     plt.show()
 
     if save_path is not None:
-        fig_m.savefig(f"{save_path}/{proj_name}_merged.png")
-        fig_b.savefig(f"{save_path}/{proj_name}_boosted.png")
-        fig_r.savefig(f"{save_path}/{proj_name}_resolved.png")
-        fig_r_or.savefig(f"{save_path}/{proj_name}_resolved_wOR.png")
+        fig_m.savefig(f"{save_path}/{proj_name}_merged.pdf", format='pdf')
+        fig_b.savefig(f"{save_path}/{proj_name}_boosted.pdf", format='pdf')
+        fig_r.savefig(f"{save_path}/{proj_name}_resolved.pdf", format='pdf')
+        fig_r_or.savefig(f"{save_path}/{proj_name}_resolved_wOR.pdf", format='pdf')
 
     return
