@@ -52,9 +52,8 @@ def dp_to_HiggsNumProb(dps):
     return probs_arr
 
 
-# calculate higgs efficiency
-# if bins=None, put all data in a single bin
-def calc_eff(LUT_boosted_pred, LUT_resolved_pred, bins):
+# calculate higgs purrity
+def calc_pur(LUT_boosted_pred, LUT_resolved_pred, bins):
 
     predHs = []
 
@@ -90,14 +89,16 @@ def calc_eff(LUT_boosted_pred, LUT_resolved_pred, bins):
         clopper_pearson_interval(num=ak.sum(correctTruth_per_bin, axis=-1), denom=ak.num(correctTruth_per_bin, axis=-1))
         - mean_per_bin
     )
+
+    num_correct_pred = np.sum(predHs[:,0])
     
-    mean_eff = np.sum(predHs[:,0])/np.size(predHs[:,0])
+    mean_pur = num_correct_pred/predHs.shape[0]
 
-    return mean_per_bin, err_per_bin, mean_eff
+    return mean_per_bin, err_per_bin, mean_pur, num_correct_pred
 
 
-# calculate higgs purity
-def calc_pur(LUT_boosted_target, LUT_resolved_target, bins):
+# calculate higgs efficiency
+def calc_eff(LUT_boosted_target, LUT_resolved_target, bins):
 
     targetHs = []
 
@@ -132,10 +133,12 @@ def calc_pur(LUT_boosted_target, LUT_resolved_target, bins):
         clopper_pearson_interval(num=ak.sum(correctTruth_per_bin, axis=-1), denom=ak.num(correctTruth_per_bin, axis=-1))
         - mean_per_bin
     )
+
+    num_reco_target = np.sum(targetHs[:,0])
     
-    mean_purity = np.sum(targetHs[:,0])/np.size(targetHs[:,0])
+    mean_eff = num_reco_target/targetHs.shape[0]
     
-    return mean_per_bin, err_per_bin, mean_purity
+    return mean_per_bin, err_per_bin, mean_eff, num_reco_target
 
 # calculate event purity
 def calc_event_purity(LUT_boosted_pred, LUT_resolved_pred, bins):

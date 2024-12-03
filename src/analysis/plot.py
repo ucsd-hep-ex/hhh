@@ -1,13 +1,16 @@
 import h5py as h5
 import matplotlib.pyplot as plt
+import mplhep as hep
 import numpy as np
 
 from src.analysis.boosted import parse_boosted_w_target
 from src.analysis.resolved import parse_resolved_w_target
 from src.analysis.utils import calc_eff, calc_pur
 
+hep.style.use("CMS")
 
-def calc_pur_eff(target_path, pred_path, bins):
+
+def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
     # open files
     pred_h5 = h5.File(pred_path, "a")
     target_h5 = h5.File(target_path)
@@ -18,9 +21,9 @@ def calc_pur_eff(target_path, pred_path, bins):
         pred_h5["TARGETS"] = pred_h5["SpecialKey.Targets"]
 
     # generate look up tables
-    LUT_boosted_pred, LUT_boosted_target, fjs_reco = parse_boosted_w_target(target_h5, pred_h5)
-    LUT_resolved_pred, LUT_resolved_target, _ = parse_resolved_w_target(target_h5, pred_h5, fjs_reco=None)
-    LUT_resolved_wOR_pred, LUT_resolved_wOR_target, _ = parse_resolved_w_target(target_h5, pred_h5, fjs_reco=fjs_reco)
+    LUT_boosted_pred, LUT_boosted_target, fjs_reco = parse_boosted_w_target(target_h5, pred_h5, num_higgs)
+    LUT_resolved_pred, LUT_resolved_target, _ = parse_resolved_w_target(target_h5, pred_h5,  fjs_reco=None,  num_higgs=num_higgs)
+    LUT_resolved_wOR_pred, LUT_resolved_wOR_target, _ = parse_resolved_w_target(target_h5, pred_h5, fjs_reco=fjs_reco, num_higgs=num_higgs)
 
     LUT_resolved_pred_no_OR = []
     for event in LUT_resolved_wOR_pred:
@@ -40,23 +43,26 @@ def calc_pur_eff(target_path, pred_path, bins):
 
     # calculate efficiencies and purities for b+r, b, and r
     results = {}
-    results["pur_m"], results["purerr_m"], avg_pur_m = calc_eff(LUT_boosted_pred, LUT_resolved_wOR_pred, bins)
-    results["eff_m"], results["efferr_m"], avg_eff_m = calc_pur(LUT_boosted_target, LUT_resolved_wOR_target, bins)
+    results["pur_m"], results["purerr_m"], avg_pur_m, n_correct_pred_m = calc_pur(LUT_boosted_pred, LUT_resolved_wOR_pred, bins)
+    results["eff_m"], results["efferr_m"], avg_eff_m, n_reco_target_m = calc_eff(LUT_boosted_target, LUT_resolved_wOR_target, bins)
 
-    results["pur_b"], results["purerr_b"], avg_pur_b = calc_eff(LUT_boosted_pred, None, bins)
-    results["eff_b"], results["efferr_b"], avg_eff_b = calc_pur(LUT_boosted_target, None, bins)
+    results["pur_b"], results["purerr_b"], avg_pur_b, n_correct_pred_b = calc_pur(LUT_boosted_pred, None, bins)
+    results["eff_b"], results["efferr_b"], avg_eff_b, n_reco_target_b = calc_eff(LUT_boosted_target, None, bins)
 
-    results["pur_r"], results["purerr_r"], avg_pur_r = calc_eff(None, LUT_resolved_pred, bins)
-    results["eff_r"], results["efferr_r"], avg_eff_r = calc_pur(None, LUT_resolved_target, bins)
+    results["pur_r"], results["purerr_r"], avg_pur_r, n_correct_pred_r = calc_pur(None, LUT_resolved_pred, bins)
+    results["eff_r"], results["efferr_r"], avg_eff_r, n_reco_target_r = calc_eff(None, LUT_resolved_target, bins)
 
-    results["pur_r_or"], results["purerr_r_or"], _ = calc_eff(None, LUT_resolved_pred_no_OR, bins)
-    results["eff_r_or"], results["efferr_r_or"], _ = calc_pur(None, LUT_resolved_target_no_OR, bins)
+    results["pur_r_or"], results["purerr_r_or"], _, _ = calc_pur(None, LUT_resolved_pred_no_OR, bins)
+    results["eff_r_or"], results["efferr_r_or"], _, _ = calc_eff(None, LUT_resolved_target_no_OR, bins)
 
     print("Average purity:")
     print("merged", avg_pur_m, "boosted", avg_pur_b, "resolved", avg_pur_r)
     print("Average efficiency:")
     print("merged", avg_eff_m, "boosted", avg_eff_b, "resolved", avg_eff_r)
-
+    print("Number of correct Higgs canddiate predictions")
+    print("merged", n_correct_pred_m, "boosted", n_correct_pred_b, "resolved", n_correct_pred_r)
+    print("Number of reconstructed Higgs targets")
+    print("merged", n_reco_target_m, "boosted", n_reco_target_b, "resolved", n_reco_target_r)
     print("Number of Boosted Prediction:", np.array([pred for event in LUT_boosted_pred for pred in event]).shape[0])
     print(
         "Number of Resolved Prediction before OR:",
@@ -72,7 +78,7 @@ def calc_pur_eff(target_path, pred_path, bins):
 
 # I started to use "efficiency" for describing how many gen Higgs were reconstructed
 # and "purity" for desrcribing how many reco Higgs are actually gen Higgs
-def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, bins=None):
+def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, bins=None, num_higgs=3):
     if bins == None:
         bins = np.arange(0, 1050, 50)
 
@@ -83,10 +89,10 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     # m: merged (b+r w OR)
     # b: boosted
     # r: resolved
-    fig_m, ax_m = plt.subplots(1, 2, figsize=(12, 5))
-    fig_b, ax_b = plt.subplots(1, 2, figsize=(12, 5))
-    fig_r, ax_r = plt.subplots(1, 2, figsize=(12, 5))
-    fig_r_or, ax_r_or = plt.subplots(1, 2, figsize=(12, 5))
+    fig_m, ax_m = plt.subplots(1, 2, figsize=(24, 10))
+    fig_b, ax_b = plt.subplots(1, 2, figsize=(24, 10))
+    fig_r, ax_r = plt.subplots(1, 2, figsize=(24, 10))
+    fig_r_or, ax_r_or = plt.subplots(1, 2, figsize=(24, 10))
 
     # preset figure labels, titles, limits, etc.
     ax_m[0].set(
@@ -133,7 +139,7 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     # plot purities and efficiencies
     for tag, pred_path in plot_dict.items():
         print("Processing", tag)
-        results = calc_pur_eff(target_path, pred_path, bins)
+        results = calc_pur_eff(target_path, pred_path, bins, num_higgs)
         ax_m[0].errorbar(
             x=bin_centers, y=results["pur_m"], xerr=xerr, yerr=results["purerr_m"], fmt="o", capsize=5, label=tag
         )
@@ -160,20 +166,21 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
         )
 
     # adjust limits and legends
-    ax_m[0].legend(title='HHH Resolved+Boosted')
-    ax_m[1].legend(title='HHH Resolved+Boosted')
+    event_type = "H" * num_higgs
+    ax_m[0].legend(title=f'{event_type} Boosted+Resolved')
+    ax_m[1].legend(title=f'{event_type} Boosted+Resolved')
     ax_m[0].set_ylim([-0.1, 1.1])
     ax_m[1].set_ylim([-0.1, 1.1])
-    ax_b[0].legend(title='HHH Boosted')
-    ax_b[1].legend(title='HHH Boosted')
+    ax_b[0].legend(title=f'{event_type} Boosted')
+    ax_b[1].legend(title=f'{event_type} Boosted')
     ax_b[0].set_ylim([-0.1, 1.1])
     ax_b[1].set_ylim([-0.1, 1.1])
-    ax_r[0].legend(title='HHH Resolved')
-    ax_r[1].legend(title='HHH Resolved')
+    ax_r[0].legend(title=f'{event_type} Resolved')
+    ax_r[1].legend(title=f'{event_type} Resolved')
     ax_r[0].set_ylim([-0.1, 1.1])
     ax_r[1].set_ylim([-0.1, 1.1])
-    ax_r_or[0].legend(title='HHH Resolved+OR')
-    ax_r_or[1].legend(title='HHH Resolved+OR')
+    ax_r_or[0].legend(title=f'{event_type} Resolved+OR')
+    ax_r_or[1].legend(title=f'{event_type} Resolved+OR')
     ax_r_or[0].set_ylim([-0.1, 1.1])
     ax_r_or[1].set_ylim([-0.1, 1.1])
 
