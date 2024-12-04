@@ -53,6 +53,7 @@ def main(test_file, event_file, n_higgs, method):
     pt = ak.Array(in_file["INPUTS"]["Jets"]["pt"])
     eta = ak.Array(in_file["INPUTS"]["Jets"]["eta"])
     phi = ak.Array(in_file["INPUTS"]["Jets"]["phi"])
+    mass = ak.Array(in_file["INPUTS"]["Jets"]["mass"])
     btag = ak.Array(in_file["INPUTS"]["Jets"]["btag"])
     mask = ak.Array(in_file["INPUTS"]["Jets"]["MASK"])
 
@@ -60,6 +61,7 @@ def main(test_file, event_file, n_higgs, method):
     pt = pt[mask]
     eta = eta[mask]
     phi = phi[mask]
+    mass = mass[mask]
     btag = btag[mask]
 
     jets = ak.zip(
@@ -67,7 +69,8 @@ def main(test_file, event_file, n_higgs, method):
             "pt": pt,
             "eta": eta,
             "phi": phi,
-            "mass": ak.zeros_like(pt),
+            # "mass": ak.zeros_like(pt),
+            'mass': mass,
             "btag": btag,
         },
         with_name="Momentum4D",
@@ -168,6 +171,7 @@ def main(test_file, event_file, n_higgs, method):
 
     num_vectors = np.sum(mask, axis=-1).to_numpy()
     lines = 2
+    print('hello', masks.shape)
     results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
     display_table(results, jet_limits, clusters)
 
