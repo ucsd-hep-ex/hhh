@@ -70,7 +70,7 @@ def main(test_file, event_file, n_higgs, method):
             "eta": eta,
             "phi": phi,
             # "mass": ak.zeros_like(pt),
-            'mass': mass,
+            "mass": mass,
             "btag": btag,
         },
         with_name="Momentum4D",
@@ -171,7 +171,7 @@ def main(test_file, event_file, n_higgs, method):
 
     num_vectors = np.sum(mask, axis=-1).to_numpy()
     lines = 2
-    print('hello', masks.shape)
+    print("hello", masks.shape)
     results, jet_limits, clusters = evaluate_predictions(predictions, num_vectors, targets, masks, event_file, lines)
     display_table(results, jet_limits, clusters)
 
