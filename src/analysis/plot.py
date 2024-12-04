@@ -139,7 +139,9 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     # plot purities and efficiencies
     for tag, pred_path in plot_dict.items():
         print("Processing", tag)
+        
         results = calc_pur_eff(target_path, pred_path, bins, num_higgs)
+
         ax_m[0].errorbar(
             x=bin_centers, y=results["pur_m"], xerr=xerr, yerr=results["purerr_m"], fmt="o", capsize=5, label=tag
         )

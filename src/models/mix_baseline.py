@@ -108,12 +108,12 @@ def main(test_file, pred_file, n_higgs):
     # Remove Overlap jets
 
     # find ak4jets that matched to selected ak8jets (dR check)
-    matched_fj_idx = match_fjet_to_jet(fjs_selected, js, ak.ArrayBuilder()).snapshot()
+    # matched_fj_idx = match_fjet_to_jet(fjs_selected, js, ak.ArrayBuilder()).snapshot()
 
-    # remove overlapped ak4jets and padded jets
-    unoverlapped = matched_fj_idx == -1
+    # remove padded jets
     not_padded = js["mask"]
-    j_cond = unoverlapped & not_padded
+    j_cond = not_padded
+
     js_selected = js[j_cond]
 
     # Reconstruct resolved higgs
