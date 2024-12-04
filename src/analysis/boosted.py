@@ -99,25 +99,25 @@ def parse_boosted_w_target(testfile, predfile, num_higgs=3):
 
     for i in range(1, num_higgs + 1):
         # Collect target pt, mask, and assignment for each Higgs
-        bh_pt = np.array(testfile['TARGETS'][f'bh{i}']['pt'])
-        bh_mask = np.array(testfile['TARGETS'][f'bh{i}']['mask'])
-        bb_bh_t.append(np.array(testfile['TARGETS'][f'bh{i}']['bb']))
+        bh_pt = np.array(testfile["TARGETS"][f"bh{i}"]["pt"])
+        bh_mask = np.array(testfile["TARGETS"][f"bh{i}"]["mask"])
+        bb_bh_t.append(np.array(testfile["TARGETS"][f"bh{i}"]["bb"]))
         bh_masks_list.append(bh_mask.reshape(-1, 1))
         bh_pts_list.append(bh_pt.reshape(-1, 1))
 
         try:
             # Collect predicted assignment, detection probability, and fatjet assignment probability
-            bb_bh_p.append(np.array(predfile['TARGETS'][f'bh{i}']['bb']))
-            dp_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['detection_probability']))
-            ap_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['assignment_probability']))
+            bb_bh_p.append(np.array(predfile["TARGETS"][f"bh{i}"]["bb"]))
+            dp_bh.append(np.array(predfile["TARGETS"][f"bh{i}"]["detection_probability"]))
+            ap_bh.append(np.array(predfile["TARGETS"][f"bh{i}"]["assignment_probability"]))
         except:
             # In case of missing prediction, apply fallback logic
-            bb_bh_p.append(np.array(predfile['TARGETS'][f'bh{i}']['bb']) + 10)
-            dp_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['mask']).astype('float'))
-            ap_bh.append(np.array(predfile['TARGETS'][f'bh{i}']['mask']).astype('float'))
+            bb_bh_p.append(np.array(predfile["TARGETS"][f"bh{i}"]["bb"]) + 10)
+            dp_bh.append(np.array(predfile["TARGETS"][f"bh{i}"]["mask"]).astype("float"))
+            ap_bh.append(np.array(predfile["TARGETS"][f"bh{i}"]["mask"]).astype("float"))
 
     # Collect fatjet pt
-    fj_pt = np.array(testfile['INPUTS']['BoostedJets']['fj_pt'])
+    fj_pt = np.array(testfile["INPUTS"]["BoostedJets"]["fj_pt"])
 
     # Concatenate detection and assignment probabilities into arrays
     dps = np.concatenate([dp.reshape(-1, 1) for dp in dp_bh], axis=1)
@@ -145,9 +145,9 @@ def parse_boosted_w_target(testfile, predfile, num_higgs=3):
     LUT_target = gen_target_bH_LUT(bb_ps_selected, bb_ts_selected, targetH_selected_pts)
 
     # Reconstruct bH to remove overlapped ak4 jets
-    fj_eta = np.array(testfile['INPUTS']['BoostedJets']['fj_eta'])
-    fj_phi = np.array(testfile['INPUTS']['BoostedJets']['fj_phi'])
-    fj_mass = np.array(testfile['INPUTS']['BoostedJets']['fj_mass'])
+    fj_eta = np.array(testfile["INPUTS"]["BoostedJets"]["fj_eta"])
+    fj_phi = np.array(testfile["INPUTS"]["BoostedJets"]["fj_phi"])
+    fj_mass = np.array(testfile["INPUTS"]["BoostedJets"]["fj_mass"])
 
     fjs = ak.zip(
         {
@@ -156,10 +156,9 @@ def parse_boosted_w_target(testfile, predfile, num_higgs=3):
             "phi": fj_phi,
             "mass": fj_mass,
         },
-        with_name="Momentum4D"
+        with_name="Momentum4D",
     )
     fj_reco = fjs[bb_ps_selected - 10]
 
     # Return the predicted and target LUTs and the reconstructed jets
     return LUT_pred, LUT_target, fj_reco
-

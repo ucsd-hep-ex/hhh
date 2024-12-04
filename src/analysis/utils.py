@@ -90,9 +90,9 @@ def calc_pur(LUT_boosted_pred, LUT_resolved_pred, bins):
         - mean_per_bin
     )
 
-    num_correct_pred = np.sum(predHs[:,0])
-    
-    mean_pur = num_correct_pred/predHs.shape[0]
+    num_correct_pred = np.sum(predHs[:, 0])
+
+    mean_pur = num_correct_pred / predHs.shape[0]
 
     return mean_per_bin, err_per_bin, mean_pur, num_correct_pred
 
@@ -134,11 +134,12 @@ def calc_eff(LUT_boosted_target, LUT_resolved_target, bins):
         - mean_per_bin
     )
 
-    num_reco_target = np.sum(targetHs[:,0])
-    
-    mean_eff = num_reco_target/targetHs.shape[0]
-    
+    num_reco_target = np.sum(targetHs[:, 0])
+
+    mean_eff = num_reco_target / targetHs.shape[0]
+
     return mean_per_bin, err_per_bin, mean_eff, num_reco_target
+
 
 # calculate event purity
 def calc_event_purity(LUT_boosted_pred, LUT_resolved_pred, bins):
@@ -178,21 +179,22 @@ def calc_event_purity(LUT_boosted_pred, LUT_resolved_pred, bins):
     N_correct_event = ak.sum(correct_event)
 
     metrics = {}
-    metrics['avg_event_purity'] = N_correct_event / N_event
+    metrics["avg_event_purity"] = N_correct_event / N_event
 
     # for each number of predicted candidates
     # calculate purity
     N_pred = ak.num(pred_events, axis=1)
     N_max_pred = ak.max(N_pred)
-    for i in range(0, N_max_pred+1):
+    for i in range(0, N_max_pred + 1):
         event_sel = N_pred == i
         N_sel_event = ak.sum(event_sel)
         N_correct_sel_event = ak.sum(correct_event[event_sel])
 
-        metrics[f'{i}_candidate_event_purity'] = N_correct_sel_event / N_sel_event
-        metrics[f'{i}_candidate_event_ratio'] = N_sel_event / N_event
+        metrics[f"{i}_candidate_event_purity"] = N_correct_sel_event / N_sel_event
+        metrics[f"{i}_candidate_event_ratio"] = N_sel_event / N_event
 
     return metrics
+
 
 # calculate event efficiency
 # calculate purity
@@ -223,7 +225,6 @@ def calc_event_efficiency(LUT_boosted_target, LUT_resolved_target, bins):
         # resolved case
         target_events = [[targetH[0] for targetH in event] for event in LUT_resolved_target]
 
-
     target_events = ak.Array(target_events)
 
     # calculate average purity
@@ -233,18 +234,18 @@ def calc_event_efficiency(LUT_boosted_target, LUT_resolved_target, bins):
     N_retrieved_event = ak.sum(retrieved_event)
 
     metrics = {}
-    metrics['avg_event_efficiency'] = N_retrieved_event / N_event
+    metrics["avg_event_efficiency"] = N_retrieved_event / N_event
 
     # for each number of targets
     # calculate purity
     N_target = ak.num(target_events, axis=1)
     N_max_target = ak.max(N_target)
-    for i in range(0, N_max_target+1):
+    for i in range(0, N_max_target + 1):
         event_sel = N_target == i
         N_sel_event = ak.sum(event_sel)
         N_retrieved_sel_event = ak.sum(retrieved_event[event_sel])
 
-        metrics[f'{i}_target_event_purity'] = N_retrieved_sel_event / N_sel_event
-        metrics[f'{i}_target_event_ratio'] = N_sel_event / N_event
+        metrics[f"{i}_target_event_purity"] = N_retrieved_sel_event / N_sel_event
+        metrics[f"{i}_target_event_ratio"] = N_sel_event / N_event
 
     return metrics

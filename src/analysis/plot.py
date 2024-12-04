@@ -22,8 +22,12 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
 
     # generate look up tables
     LUT_boosted_pred, LUT_boosted_target, fjs_reco = parse_boosted_w_target(target_h5, pred_h5, num_higgs)
-    LUT_resolved_pred, LUT_resolved_target, _ = parse_resolved_w_target(target_h5, pred_h5,  fjs_reco=None,  num_higgs=num_higgs)
-    LUT_resolved_wOR_pred, LUT_resolved_wOR_target, _ = parse_resolved_w_target(target_h5, pred_h5, fjs_reco=fjs_reco, num_higgs=num_higgs)
+    LUT_resolved_pred, LUT_resolved_target, _ = parse_resolved_w_target(
+        target_h5, pred_h5, fjs_reco=None, num_higgs=num_higgs
+    )
+    LUT_resolved_wOR_pred, LUT_resolved_wOR_target, _ = parse_resolved_w_target(
+        target_h5, pred_h5, fjs_reco=fjs_reco, num_higgs=num_higgs
+    )
 
     LUT_resolved_pred_no_OR = []
     for event in LUT_resolved_wOR_pred:
@@ -43,8 +47,12 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
 
     # calculate efficiencies and purities for b+r, b, and r
     results = {}
-    results["pur_m"], results["purerr_m"], avg_pur_m, n_correct_pred_m = calc_pur(LUT_boosted_pred, LUT_resolved_wOR_pred, bins)
-    results["eff_m"], results["efferr_m"], avg_eff_m, n_reco_target_m = calc_eff(LUT_boosted_target, LUT_resolved_wOR_target, bins)
+    results["pur_m"], results["purerr_m"], avg_pur_m, n_correct_pred_m = calc_pur(
+        LUT_boosted_pred, LUT_resolved_wOR_pred, bins
+    )
+    results["eff_m"], results["efferr_m"], avg_eff_m, n_reco_target_m = calc_eff(
+        LUT_boosted_target, LUT_resolved_wOR_target, bins
+    )
 
     results["pur_b"], results["purerr_b"], avg_pur_b, n_correct_pred_b = calc_pur(LUT_boosted_pred, None, bins)
     results["eff_b"], results["efferr_b"], avg_eff_b, n_reco_target_b = calc_eff(LUT_boosted_target, None, bins)
@@ -139,7 +147,7 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     # plot purities and efficiencies
     for tag, pred_path in plot_dict.items():
         print("Processing", tag)
-        
+
         results = calc_pur_eff(target_path, pred_path, bins, num_higgs)
 
         ax_m[0].errorbar(
@@ -169,29 +177,29 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
 
     # adjust limits and legends
     event_type = "H" * num_higgs
-    ax_m[0].legend(title=f'{event_type} Boosted+Resolved')
-    ax_m[1].legend(title=f'{event_type} Boosted+Resolved')
+    ax_m[0].legend(title=f"{event_type} Boosted+Resolved")
+    ax_m[1].legend(title=f"{event_type} Boosted+Resolved")
     ax_m[0].set_ylim([-0.1, 1.1])
     ax_m[1].set_ylim([-0.1, 1.1])
-    ax_b[0].legend(title=f'{event_type} Boosted')
-    ax_b[1].legend(title=f'{event_type} Boosted')
+    ax_b[0].legend(title=f"{event_type} Boosted")
+    ax_b[1].legend(title=f"{event_type} Boosted")
     ax_b[0].set_ylim([-0.1, 1.1])
     ax_b[1].set_ylim([-0.1, 1.1])
-    ax_r[0].legend(title=f'{event_type} Resolved')
-    ax_r[1].legend(title=f'{event_type} Resolved')
+    ax_r[0].legend(title=f"{event_type} Resolved")
+    ax_r[1].legend(title=f"{event_type} Resolved")
     ax_r[0].set_ylim([-0.1, 1.1])
     ax_r[1].set_ylim([-0.1, 1.1])
-    ax_r_or[0].legend(title=f'{event_type} Resolved+OR')
-    ax_r_or[1].legend(title=f'{event_type} Resolved+OR')
+    ax_r_or[0].legend(title=f"{event_type} Resolved+OR")
+    ax_r_or[1].legend(title=f"{event_type} Resolved+OR")
     ax_r_or[0].set_ylim([-0.1, 1.1])
     ax_r_or[1].set_ylim([-0.1, 1.1])
 
     plt.show()
 
     if save_path is not None:
-        fig_m.savefig(f"{save_path}/{proj_name}_merged.pdf", format='pdf')
-        fig_b.savefig(f"{save_path}/{proj_name}_boosted.pdf", format='pdf')
-        fig_r.savefig(f"{save_path}/{proj_name}_resolved.pdf", format='pdf')
-        fig_r_or.savefig(f"{save_path}/{proj_name}_resolved_wOR.pdf", format='pdf')
+        fig_m.savefig(f"{save_path}/{proj_name}_merged.pdf", format="pdf")
+        fig_b.savefig(f"{save_path}/{proj_name}_boosted.pdf", format="pdf")
+        fig_r.savefig(f"{save_path}/{proj_name}_resolved.pdf", format="pdf")
+        fig_r_or.savefig(f"{save_path}/{proj_name}_resolved_wOR.pdf", format="pdf")
 
     return

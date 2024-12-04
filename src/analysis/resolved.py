@@ -133,21 +133,22 @@ def gen_target_h_LUT(b1_ps_passed, b2_ps_passed, b1_ts_selected, b2_ts_selected,
         builder.end_list()
     return builder
 
+
 def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
     # Lists to store h_pt, h_masks, and bh_masks for each Higgs
     h_pts_list = []
     h_masks_list = []
     bh_masks_list = []
-    
+
     for i in range(1, num_higgs + 1):
         # Collect pt and mask for resolved Higgs
-        h_pt = np.array(testfile['TARGETS'][f'h{i}']['pt'])
-        h_mask = np.array(testfile['TARGETS'][f'h{i}']['mask'])
+        h_pt = np.array(testfile["TARGETS"][f"h{i}"]["pt"])
+        h_mask = np.array(testfile["TARGETS"][f"h{i}"]["mask"])
         h_pts_list.append(h_pt.reshape(-1, 1))
         h_masks_list.append(h_mask.reshape(-1, 1))
-        
+
         # Collect boosted mask for each Higgs
-        bh_mask = np.array(testfile['TARGETS'][f'bh{i}']['mask'])
+        bh_mask = np.array(testfile["TARGETS"][f"bh{i}"]["mask"])
         bh_masks_list.append(bh_mask.reshape(-1, 1))
 
     # Combine masks and pt arrays for resolved and boosted Higgs
@@ -165,30 +166,30 @@ def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
 
     for i in range(1, num_higgs + 1):
         # Collect target assignments for b1 and b2
-        b1_h_t = np.array(testfile['TARGETS'][f'h{i}']['b1']).astype('int')
-        b2_h_t = np.array(testfile['TARGETS'][f'h{i}']['b2']).astype('int')
+        b1_h_t = np.array(testfile["TARGETS"][f"h{i}"]["b1"]).astype("int")
+        b2_h_t = np.array(testfile["TARGETS"][f"h{i}"]["b2"]).astype("int")
         b1_ts_list.append(b1_h_t.reshape(-1, 1))
         b2_ts_list.append(b2_h_t.reshape(-1, 1))
 
         # Collect predicted assignments for b1 and b2
-        b1_h_p = np.array(predfile['TARGETS'][f'h{i}']['b1']).astype('int')
-        b2_h_p = np.array(predfile['TARGETS'][f'h{i}']['b2']).astype('int')
+        b1_h_p = np.array(predfile["TARGETS"][f"h{i}"]["b1"]).astype("int")
+        b2_h_p = np.array(predfile["TARGETS"][f"h{i}"]["b2"]).astype("int")
         b1_ps_list.append(b1_h_p.reshape(-1, 1))
         b2_ps_list.append(b2_h_p.reshape(-1, 1))
 
     # Lists for detection and assignment probabilities
     dp_list, ap_list = [], []
     for i in range(1, num_higgs + 1):
-        dp_h = np.array(predfile['TARGETS'][f'h{i}']['detection_probability'])
-        ap_h = np.array(predfile['TARGETS'][f'h{i}']['assignment_probability'])
+        dp_h = np.array(predfile["TARGETS"][f"h{i}"]["detection_probability"])
+        ap_h = np.array(predfile["TARGETS"][f"h{i}"]["assignment_probability"])
         dp_list.append(dp_h.reshape(-1, 1))
         ap_list.append(ap_h.reshape(-1, 1))
 
     # Reconstruct jet 4-momentum objects
-    j_pt = np.array(testfile['INPUTS']['Jets']['pt'])
-    j_eta = np.array(testfile['INPUTS']['Jets']['eta'])
-    j_phi = np.array(testfile['INPUTS']['Jets']['phi'])
-    j_mass = np.array(testfile['INPUTS']['Jets']['mass'])
+    j_pt = np.array(testfile["INPUTS"]["Jets"]["pt"])
+    j_eta = np.array(testfile["INPUTS"]["Jets"]["eta"])
+    j_phi = np.array(testfile["INPUTS"]["Jets"]["phi"])
+    j_mass = np.array(testfile["INPUTS"]["Jets"]["mass"])
     js = ak.zip(
         {
             "pt": j_pt,
@@ -196,10 +197,10 @@ def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
             "phi": j_phi,
             "mass": j_mass,
         },
-        with_name="Momentum4D"
+        with_name="Momentum4D",
     )
     if np.max(js.layout.minmax_depth) == 1:
-        js = [js] 
+        js = [js]
 
     # Concatenate detection and assignment probabilities
     dps = np.concatenate(dp_list, axis=1)
@@ -234,10 +235,15 @@ def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
     LUT_pred = gen_pred_h_LUT(
         b1_ps_selected, b2_ps_selected, b1_ts_selected, b2_ts_selected, js, goodJetIdx, bi_cat_H_selected, ak.ArrayBuilder()
     ).snapshot()
-    
+
     LUT_target = gen_target_h_LUT(
-        b1_ps_selected, b2_ps_selected, b1_ts_selected, b2_ts_selected, targetH_selected_pts, bi_cat_H_selected, ak.ArrayBuilder()
+        b1_ps_selected,
+        b2_ps_selected,
+        b1_ts_selected,
+        b2_ts_selected,
+        targetH_selected_pts,
+        bi_cat_H_selected,
+        ak.ArrayBuilder(),
     ).snapshot()
 
     return LUT_pred, LUT_target, goodJetIdx
-
