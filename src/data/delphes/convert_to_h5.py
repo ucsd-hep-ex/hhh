@@ -24,18 +24,50 @@ N_JETS = 10
 MIN_JET_PT = 20
 MIN_FJET_PT = 200
 PROJECT_DIR = Path(__file__).resolve().parents[3]
+PDGID_B = 5
+PDGID_C = 4
+PDGID_H = 25
+
+
+def btagging(pt, flavor, upart_tagger=True):
+    """Rerun b-tagging based on jet pT and flavor."""
+    # set random seed for reproducibility
+    rng = np.random.default_rng(42)
+    # generate random numbers for b-tagging efficiency
+    x_rand = rng.uniform(0, 1, size=pt.shape)
+    if upart_tagger:
+        # UParT based on CMS-DP-2024-066
+        # https://cds.cern.ch/record/2904702
+        b_efficiency = 0.85 / (1.0 + np.exp(-(pt + 20.0) / 20.0))
+        c_efficiency = 0.12 / (1.0 + np.exp(-(pt + 20.0) / 20.0))
+        light_efficiency = 0.006 / (1.0 - np.exp(-(pt + 10.0) / 80.0)) + 1.5e-5 * pt
+    else:
+        # CSV based on arXiv:1211.4462
+        # https://github.com/delphes/delphes/blob/98f15add056e657e39bda9e32ccd97ef427ce04c/cards/delphes_card_CMS.tcl#L713-L736
+        b_efficiency = 0.85 * np.tanh(0.0025 * pt) * (25.0 / (1 + 0.063 * pt))
+        c_efficiency = 0.25 * np.tanh(0.018 * pt) * (1 / (1 + 0.0013 * pt))
+        light_efficiency = 0.01 + 0.000038 * pt
+    return np.where(
+        flavor == PDGID_B,
+        np.where(x_rand < b_efficiency, 1, 0),
+        np.where(
+            flavor == PDGID_C,
+            np.where(x_rand < c_efficiency, 1, 0),
+            np.where(x_rand < light_efficiency, 1, 0),
+        ),
+    )
 
 
 def to_np_array(ak_array, max_n=10, pad=0):
     return ak.fill_none(ak.pad_none(ak_array, max_n, clip=True, axis=-1), pad).to_numpy()
 
 
-def get_datasets(arrays, n_higgs):  # noqa: C901
+def get_datasets(arrays, n_higgs, rerun_btagging):  # noqa: C901
     part_pid = arrays["Particle/Particle.PID"]  # PDG ID
     part_m1 = arrays["Particle/Particle.M1"]
     # note: see some +/-15 PDG ID particles (taus) so h->tautau is turned on
     # explicitly mask these events out, just keeping hbb events
-    condition_hbb = np.logical_and(np.abs(part_pid) == 5, part_pid[part_m1] == 25)
+    condition_hbb = np.logical_and(np.abs(part_pid) == PDGID_B, part_pid[part_m1] == PDGID_H)
     mask_hbb = ak.count(part_pid[condition_hbb], axis=-1) == 2 * n_higgs
     part_pid = part_pid[mask_hbb]
     part_pt = arrays["Particle/Particle.PT"][mask_hbb]
@@ -52,6 +84,9 @@ def get_datasets(arrays, n_higgs):  # noqa: C901
     mass = arrays["Jet/Jet.Mass"][mask_hbb]
     btag = arrays["Jet/Jet.BTag"][mask_hbb]
     flavor = arrays["Jet/Jet.Flavor"][mask_hbb]
+    if rerun_btagging:
+        logging.info("Rerunning b-tagging")
+        btag = btagging(pt, flavor)
 
     # large-radius jet info
     fj_pt = arrays["FatJet/FatJet.PT"][mask_hbb]
@@ -90,9 +125,9 @@ def get_datasets(arrays, n_higgs):  # noqa: C901
         with_name="Momentum4D",
     )
 
-    higgs_condition = np.logical_and(particles.pid == 25, np.abs(particles.pid[particles.d1]) == 5)
+    higgs_condition = np.logical_and(particles.pid == PDGID_H, np.abs(particles.pid[particles.d1]) == PDGID_B)
     higgses = ak.to_regular(particles[higgs_condition], axis=1)
-    bquark_condition = np.logical_and(np.abs(particles.pid) == 5, particles.pid[particles.m1] == 25)
+    bquark_condition = np.logical_and(np.abs(particles.pid) == PDGID_B, particles.pid[particles.m1] == PDGID_H)
     bquarks = ak.to_regular(particles[bquark_condition], axis=1)
 
     jets = ak.zip(
@@ -181,13 +216,13 @@ def get_datasets(arrays, n_higgs):  # noqa: C901
     fj_ncharged = fj_ncharged[:, :n_fjets]
     fj_higgs_idx = fj_higgs_idx[:, :n_fjets]
 
-    # add H pT info
-    H_pt = higgses[mask_minjets].pt
-    H_pt = ak.fill_none(ak.pad_none(H_pt, target=3, axis=1, clip=True), -1)
+    # add Higgs pT info
+    h_pt = higgses[mask_minjets].pt
+    h_pt = ak.fill_none(ak.pad_none(h_pt, target=3, axis=1, clip=True), -1)
 
-    h1_pt, bh1_pt = H_pt[:, 0], H_pt[:, 0]
-    h2_pt, bh2_pt = H_pt[:, 1], H_pt[:, 1]
-    h3_pt, bh3_pt = H_pt[:, 2], H_pt[:, 2]
+    h1_pt, bh1_pt = h_pt[:, 0], h_pt[:, 0]
+    h2_pt, bh2_pt = h_pt[:, 1], h_pt[:, 1]
+    h3_pt, bh3_pt = h_pt[:, 2], h_pt[:, 2]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
@@ -326,7 +361,8 @@ def get_datasets(arrays, n_higgs):  # noqa: C901
     type=click.IntRange(2, 3),
     help="Number of Higgs bosons per event",
 )
-def main(in_files, out_file, train_frac, n_higgs):
+@click.option("--rerun-btagging", is_flag=True, help="Rerun b-tagging.")
+def main(in_files, out_file, train_frac, n_higgs, rerun_btagging):
     all_datasets = {}
     for file_name in in_files:
         with uproot.open(file_name) as in_file:
@@ -345,7 +381,7 @@ def main(in_files, out_file, train_frac, n_higgs):
                 + [key for key in events.keys() if "FatJet/FatJet." in key and "fBits" not in key]
             )
             arrays = events.arrays(keys, entry_start=entry_start, entry_stop=entry_stop)
-            datasets = get_datasets(arrays, n_higgs)
+            datasets = get_datasets(arrays, n_higgs, rerun_btagging)
             for dataset_name, data in datasets.items():
                 if dataset_name not in all_datasets:
                     all_datasets[dataset_name] = []
