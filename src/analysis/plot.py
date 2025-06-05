@@ -25,18 +25,18 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
     LUT_resolved_pred, LUT_resolved_target, _ = parse_resolved_w_target(
         target_h5, pred_h5, fjs_reco=None, num_higgs=num_higgs
     )
-    
+
     # note: wOR LUTs only mark which resolved pred overlapped with any boosted pred
     # Overlapped resolved pred. are NOT REMOVED
     LUT_resolved_wOR_pred, LUT_resolved_wOR_target, _ = parse_resolved_w_target(
         target_h5, pred_h5, fjs_reco=fjs_reco, num_higgs=num_higgs
     )
-    
+
     # Calculate the number of bad removed particle reconstructions
     # bad: removed due to overlapping but the target only has reconstruction in this topology
-    resolved_reco_is_correct = LUT_resolved_wOR_pred[:,:,0]==1
-    resolved_reco_is_reomved = LUT_resolved_wOR_pred[:,:,2]==1
-    resolved_target_has_no_boosted_target = LUT_resolved_wOR_pred[:,:,3]==0
+    resolved_reco_is_correct = LUT_resolved_wOR_pred[:, :, 0] == 1
+    resolved_reco_is_reomved = LUT_resolved_wOR_pred[:, :, 2] == 1
+    resolved_target_has_no_boosted_target = LUT_resolved_wOR_pred[:, :, 3] == 0
     bad_OR = resolved_reco_is_correct & resolved_reco_is_reomved & resolved_target_has_no_boosted_target
     good_OR = resolved_reco_is_correct & resolved_reco_is_reomved & ~resolved_target_has_no_boosted_target
     surprising_OR = ~resolved_reco_is_correct & resolved_reco_is_reomved
@@ -75,7 +75,6 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
 
     results["pur_r_or"], results["purerr_r_or"], _, _ = calc_pur(None, LUT_resolved_pred_no_OR, bins)
     results["eff_r_or"], results["efferr_r_or"], _, _ = calc_eff(None, LUT_resolved_target_no_OR, bins)
-    
 
     print("Average purity:")
     print("merged", avg_pur_m, "boosted", avg_pur_b, "resolved", avg_pur_r)
@@ -94,18 +93,9 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
         "Number of Resolved Prediction after OR:",
         np.array([pred for event in LUT_resolved_pred_no_OR for pred in event]).shape[0],
     )
-    print(
-        "Number of bad overlap-removal:",
-        np.sum(bad_OR)
-    )
-    print(
-        "Number of good overlap-removal:",
-        np.sum(good_OR)
-    )
-    print(
-        "Number of surprising overlap-removal:",
-        np.sum(surprising_OR)
-    )
+    print("Number of bad overlap-removal:", np.sum(bad_OR))
+    print("Number of good overlap-removal:", np.sum(good_OR))
+    print("Number of surprising overlap-removal:", np.sum(surprising_OR))
 
     return results
 
