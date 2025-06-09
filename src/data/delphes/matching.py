@@ -5,7 +5,7 @@ import vector
 
 vector.register_awkward()
 vector.register_numba()
-ak.numba.register()
+ak.numba._register()
 
 JET_DR = 0.5  # https://github.com/delphes/delphes/blob/master/cards/delphes_card_CMS.tcl#L642
 FJET_DR = 0.8  # https://github.com/delphes/delphes/blob/master/cards/delphes_card_CMS.tcl#L658
