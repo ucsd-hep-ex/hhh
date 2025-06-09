@@ -1,5 +1,7 @@
 # hhh
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14248960.svg)](https://doi.org/10.5281/zenodo.14248960)
+
 ## 1. Pull and start the Docker container
 ```bash
 docker pull jmduarte/hhh
