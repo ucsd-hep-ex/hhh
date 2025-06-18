@@ -16,7 +16,7 @@ from src.data.delphes.matching import (
 
 vector.register_awkward()
 vector.register_numba()
-ak.numba.register()
+ak.numba._register()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,7 +34,9 @@ def btagging(pt, flavor, upart_tagger=True):
     # set random seed for reproducibility
     rng = np.random.default_rng(42)
     # generate random numbers for b-tagging efficiency
-    x_rand = rng.uniform(0, 1, size=pt.shape)
+    # get a flatten first
+    x_rand = rng.uniform(0, 1, size=len(pt.layout.content))
+    # btagging model
     if upart_tagger:
         # UParT based on CMS-DP-2024-066
         # https://cds.cern.ch/record/2904702
@@ -47,15 +49,25 @@ def btagging(pt, flavor, upart_tagger=True):
         b_efficiency = 0.85 * np.tanh(0.0025 * pt) * (25.0 / (1 + 0.063 * pt))
         c_efficiency = 0.25 * np.tanh(0.018 * pt) * (1 / (1 + 0.0013 * pt))
         light_efficiency = 0.01 + 0.000038 * pt
-    return np.where(
-        flavor == PDGID_B,
-        np.where(x_rand < b_efficiency, 1, 0),
+
+    # get flatten b tagging arrays
+    flavor_flat = ak.flatten(flavor)
+    b_eff_flat = ak.flatten(b_efficiency)
+    c_eff_flat = ak.flatten(c_efficiency)
+    light_eff_flat = ak.flatten(light_efficiency)
+    btags_flatten = np.where(
+        flavor_flat == PDGID_B,
+        np.where(x_rand < b_eff_flat, 1, 0),
         np.where(
-            flavor == PDGID_C,
-            np.where(x_rand < c_efficiency, 1, 0),
-            np.where(x_rand < light_efficiency, 1, 0),
+            flavor_flat == PDGID_C,
+            np.where(x_rand < c_eff_flat, 1, 0),
+            np.where(x_rand < light_eff_flat, 1, 0),
         ),
     )
+
+    # Reshape the btagging array into the same structure with pt using the layout
+    btags = ak.unflatten(btags_flatten, ak.num(pt))
+    return btags
 
 
 def to_np_array(ak_array, max_n=10, pad=0):
