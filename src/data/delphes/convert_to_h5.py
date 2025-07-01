@@ -232,9 +232,17 @@ def get_datasets(arrays, n_higgs, rerun_btagging):  # noqa: C901
     h_pt = higgses[mask_minjets].pt
     h_pt = ak.fill_none(ak.pad_none(h_pt, target=3, axis=1, clip=True), -1)
 
-    h1_pt, bh1_pt = h_pt[:, 0], h_pt[:, 0]
-    h2_pt, bh2_pt = h_pt[:, 1], h_pt[:, 1]
-    h3_pt, bh3_pt = h_pt[:, 2], h_pt[:, 2]
+    h1_pt, bh1_pt = H_pt[:, 0], H_pt[:, 0]
+    h2_pt, bh2_pt = H_pt[:, 1], H_pt[:, 1]
+    h3_pt, bh3_pt = H_pt[:, 2], H_pt[:, 2]
+    
+    # add H mass info
+    H_mh = higgses[mask_minjets].mass
+    H_mh = ak.fill_none(ak.pad_none(H_mh, target=3, axis=1, clip=True), -1)
+
+    h1_mh, bh1_mh = H_mh[:,0], H_mh[:,0]
+    h2_mh, bh2_mh = H_mh[:,1], H_mh[:,1]
+    h3_mh, bh3_mh = H_mh[:,2], H_mh[:,2]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
@@ -330,30 +338,36 @@ def get_datasets(arrays, n_higgs, rerun_btagging):  # noqa: C901
     datasets["TARGETS/h1/b1"] = h1_b1.to_numpy()
     datasets["TARGETS/h1/b2"] = h1_b2.to_numpy()
     datasets["TARGETS/h1/pt"] = h1_pt.to_numpy()
+    datasets["TARGETS/h1/mh"] = h1_mh.to_numpy()
 
     datasets["TARGETS/h2/mask"] = h2_mask.to_numpy()
     datasets["TARGETS/h2/b1"] = h2_b1.to_numpy()
     datasets["TARGETS/h2/b2"] = h2_b2.to_numpy()
     datasets["TARGETS/h2/pt"] = h2_pt.to_numpy()
+    datasets["TARGETS/h2/mh"] = h2_mh.to_numpy()
 
     if n_higgs == 3:
         datasets["TARGETS/h3/mask"] = h3_mask.to_numpy()
         datasets["TARGETS/h3/b1"] = h3_b1.to_numpy()
         datasets["TARGETS/h3/b2"] = h3_b2.to_numpy()
         datasets["TARGETS/h3/pt"] = h3_pt.to_numpy()
+        datasets["TARGETS/h3/mh"] = h3_mh.to_numpy()
 
     datasets["TARGETS/bh1/mask"] = h1_fj_mask.to_numpy()
     datasets["TARGETS/bh1/bb"] = h1_bb.to_numpy().reshape(h1_fj_mask.to_numpy().shape)
     datasets["TARGETS/bh1/pt"] = bh1_pt.to_numpy()
+    datasets["TARGETS/bh1/mh"] = bh1_mh.to_numpy()
 
     datasets["TARGETS/bh2/mask"] = h2_fj_mask.to_numpy()
     datasets["TARGETS/bh2/bb"] = h2_bb.to_numpy().reshape(h2_fj_mask.to_numpy().shape)
     datasets["TARGETS/bh2/pt"] = bh2_pt.to_numpy()
+    datasets["TARGETS/bh2/mh"] = bh2_mh.to_numpy()
 
     if n_higgs == 3:
         datasets["TARGETS/bh3/mask"] = h3_fj_mask.to_numpy()
         datasets["TARGETS/bh3/bb"] = h3_bb.to_numpy().reshape(h3_fj_mask.to_numpy().shape)
         datasets["TARGETS/bh3/pt"] = bh3_pt.to_numpy()
+        datasets["TARGETS/bh3/mh"] = bh3_mh.to_numpy()
 
     return datasets
 
