@@ -235,14 +235,14 @@ def get_datasets(arrays, n_higgs, rerun_btagging):  # noqa: C901
     h1_pt, bh1_pt = H_pt[:, 0], H_pt[:, 0]
     h2_pt, bh2_pt = H_pt[:, 1], H_pt[:, 1]
     h3_pt, bh3_pt = H_pt[:, 2], H_pt[:, 2]
-    
+
     # add H mass info
     H_mh = higgses[mask_minjets].mass
     H_mh = ak.fill_none(ak.pad_none(H_mh, target=3, axis=1, clip=True), -1)
 
-    h1_mh, bh1_mh = H_mh[:,0], H_mh[:,0]
-    h2_mh, bh2_mh = H_mh[:,1], H_mh[:,1]
-    h3_mh, bh3_mh = H_mh[:,2], H_mh[:,2]
+    h1_mh, bh1_mh = H_mh[:, 0], H_mh[:, 0]
+    h2_mh, bh2_mh = H_mh[:, 1], H_mh[:, 1]
+    h3_mh, bh3_mh = H_mh[:, 2], H_mh[:, 2]
 
     # mask to define zero-padded small-radius jets
     mask = pt > MIN_JET_PT
