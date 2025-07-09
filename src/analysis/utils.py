@@ -4,8 +4,8 @@ from copy import deepcopy
 import awkward as ak
 import numpy as np
 from coffea.hist.plot import clopper_pearson_interval
-
 from sklearn.metrics import confusion_matrix
+
 
 def reset_collision_dp(dps, aps):
     ap_filter = aps < 1 / (13 * 13)
@@ -65,7 +65,7 @@ def calc_pur(LUT_boosted_pred, LUT_resolved_pred, bins, overlap_removal=True):
         predHs += predHs_boosted
 
     if LUT_resolved_pred is not None:
-        if (LUT_boosted_pred is not None) & (overlap_removal==True):
+        if (LUT_boosted_pred is not None) & (overlap_removal == True):
             # calculate merged efficiency
             # Remove overlapped resolved H_reco
             predHs_resolved = [predH[0:2] for event in LUT_resolved_pred for predH in event if predH[2] == 0]
@@ -110,7 +110,7 @@ def calc_eff(LUT_boosted_target, LUT_resolved_target, bins, overlap_removal=True
         targetHs += targetHs_boosted
 
     if LUT_resolved_target is not None:
-        if (LUT_boosted_target is not None) & (overlap_removal==True):
+        if (LUT_boosted_target is not None) & (overlap_removal == True):
             # calculate merged purity
             # only consider resolved target H that doesn't have a corresponding boosted H target
             targetHs_resolved = [targetH[0:2] for event in LUT_resolved_target for targetH in event if targetH[2] == 0]
@@ -197,6 +197,7 @@ def calc_event_purity(LUT_boosted_pred, LUT_resolved_pred, bins):
 
     return metrics
 
+
 # calculate event efficiency
 # calculate purity
 def calc_event_efficiency(LUT_boosted_target, LUT_resolved_target, bins):
@@ -232,10 +233,10 @@ def calc_event_efficiency(LUT_boosted_target, LUT_resolved_target, bins):
     N_event = ak.num(target_events, axis=0)
     N_target = ak.num(target_events, axis=1)
 
-    nonempty_events = target_events[N_target>0]
+    nonempty_events = target_events[N_target > 0]
     N_nonempty_event = ak.num(nonempty_events, axis=0)
 
-    retrieved_event =  ak.all(target_events, axis=1)
+    retrieved_event = ak.all(target_events, axis=1)
     retrieved_nonempty_event = ak.all(nonempty_events, axis=1)
     N_retrieved_nonempty_event = ak.sum(retrieved_nonempty_event)
 
@@ -256,6 +257,7 @@ def calc_event_efficiency(LUT_boosted_target, LUT_resolved_target, bins):
 
     return metrics
 
+
 def make_event_label_by_targets(LUT_boosted_target, LUT_resolved_target):
 
     # merged case
@@ -263,7 +265,7 @@ def make_event_label_by_targets(LUT_boosted_target, LUT_resolved_target):
     N_bh = []
     N_rh = []
     for event_boosted, event_resolved in zip(LUT_boosted_target, LUT_resolved_target):
-        n_bh  = 0
+        n_bh = 0
         for target_bH in event_boosted:
             n_bh += 1
 
@@ -282,6 +284,7 @@ def make_event_label_by_targets(LUT_boosted_target, LUT_resolved_target):
 
     return nb_nr
 
+
 def make_event_label_by_preds(LUT_boosted_pred, LUT_resolved_pred):
 
     # merged case
@@ -289,7 +292,7 @@ def make_event_label_by_preds(LUT_boosted_pred, LUT_resolved_pred):
     N_bh = []
     N_rh = []
     for event_boosted, event_resolved in zip(LUT_boosted_pred, LUT_resolved_pred):
-        n_bh  = 0
+        n_bh = 0
         for pred_bH in event_boosted:
             n_bh += 1
 
@@ -309,6 +312,7 @@ def make_event_label_by_preds(LUT_boosted_pred, LUT_resolved_pred):
 
     return nb_nr
 
+
 # make confusion matrix
 # arguments are LUTs
 def make_event_confusion_matrix(boosted_target, resolved_target, boosted_pred, resolved_pred, num_higgs=3):
@@ -319,13 +323,11 @@ def make_event_confusion_matrix(boosted_target, resolved_target, boosted_pred, r
 
     unique_pred_labels = np.unique(pred_labels, axis=0)
     unique_target_labels = np.unique(target_labels, axis=0)
-    unique_labels = np.unique(
-                        np.concatenate([unique_pred_labels,unique_target_labels],axis=0),
-                        axis=0)
+    unique_labels = np.unique(np.concatenate([unique_pred_labels, unique_target_labels], axis=0), axis=0)
 
     # create one hot encoder
     # minus one init
-    y_pred = -np.ones_like(pred_labels[:,0])
+    y_pred = -np.ones_like(pred_labels[:, 0])
     y_true = deepcopy(y_pred)
     str_labels = []
 
@@ -333,15 +335,15 @@ def make_event_confusion_matrix(boosted_target, resolved_target, boosted_pred, r
         lb_str = f"{lb[0]}bh{lb[1]}rh"
         str_labels.append(lb_str)
 
-        pred_has_lb_i = np.all(pred_labels==lb, axis=1)
-        target_has_lb_i = np.all(target_labels==lb, axis=1)
+        pred_has_lb_i = np.all(pred_labels == lb, axis=1)
+        target_has_lb_i = np.all(target_labels == lb, axis=1)
         y_pred[pred_has_lb_i] = i
         y_true[target_has_lb_i] = i
 
-    full_target_labels = unique_target_labels[unique_target_labels.sum(axis=1)==num_higgs]
-    has_full_targets = np.zeros_like(y_true, dtype='bool')
+    full_target_labels = unique_target_labels[unique_target_labels.sum(axis=1) == num_higgs]
+    has_full_targets = np.zeros_like(y_true, dtype="bool")
     for i, lb in enumerate(full_target_labels):
-        target_has_lb_i = np.all(target_labels==lb, axis=1)
+        target_has_lb_i = np.all(target_labels == lb, axis=1)
         has_full_targets[target_has_lb_i] = True
 
     # find the events having >3 reco Higgs
@@ -351,28 +353,30 @@ def make_event_confusion_matrix(boosted_target, resolved_target, boosted_pred, r
     sel_y_pred = y_pred[sel]
     sel_y_true = y_true[sel]
 
-    print("Number of fully boosted", np.sum(np.all(target_labels==[3,0], axis=1)))
-    print("They are at", np.where(np.all(target_labels==[3,0], axis=1)))
-    print("They are", target_labels[np.all(target_labels==[3,0], axis=1), :])
+    print("Number of fully boosted", np.sum(np.all(target_labels == [3, 0], axis=1)))
+    print("They are at", np.where(np.all(target_labels == [3, 0], axis=1)))
+    print("They are", target_labels[np.all(target_labels == [3, 0], axis=1), :])
 
     # calculate the percentages of bad predictions
-    bad_perc = np.sum(failed_OR)/failed_OR.shape[0]
-    partial_perc = 1 - np.sum(has_full_targets)/has_full_targets.shape[0]
+    bad_perc = np.sum(failed_OR) / failed_OR.shape[0]
+    partial_perc = 1 - np.sum(has_full_targets) / has_full_targets.shape[0]
     print("Percentages of events >3 reco Higgs", bad_perc)
     print("Percentages of events having partial targets", partial_perc)
 
     matrix = confusion_matrix(sel_y_true, sel_y_pred)
 
     # get rid of rows that does not include good full target rows
-    full_target_cls = [i for i, lb in enumerate(unique_target_labels) if np.any(np.all(lb==full_target_labels, axis=1))]
-    full_target_str_labels = [str_labels[i] for i, lb in enumerate(unique_target_labels) if np.any(np.all(lb==full_target_labels, axis=1))]
+    full_target_cls = [i for i, lb in enumerate(unique_target_labels) if np.any(np.all(lb == full_target_labels, axis=1))]
+    full_target_str_labels = [
+        str_labels[i] for i, lb in enumerate(unique_target_labels) if np.any(np.all(lb == full_target_labels, axis=1))
+    ]
     matrix = matrix[full_target_cls, :]
     matrix = matrix[:, full_target_cls]
 
     # normalize matrix row (truth) wise
     row_sum = matrix.sum(axis=1).reshape(-1, 1)
-    matrix = matrix/row_sum
+    matrix = matrix / row_sum
     print(full_target_str_labels, str_labels)
 
-    #print(sel_y_true.max(), sel_y_true.min(), sel_y_pred.max(), sel_y_pred.min(), str_labels)
+    # print(sel_y_true.max(), sel_y_true.min(), sel_y_pred.max(), sel_y_pred.min(), str_labels)
     return matrix, full_target_str_labels, str_labels

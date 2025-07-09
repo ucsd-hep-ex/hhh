@@ -66,7 +66,7 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
     results["eff_m"], results["efferr_m"], avg_eff_m, n_reco_target_m = calc_eff(
         LUT_boosted_target, LUT_resolved_wOR_target, bins
     )
-    
+
     results["pur_m_wo_OR"], results["purerr_m_wo_OR"], avg_pur_m_wo_OR, n_correct_pred_m_wo_OR = calc_pur(
         LUT_boosted_pred, LUT_resolved_wOR_pred, bins, overlap_removal=False
     )
@@ -89,16 +89,28 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
     print("Average efficiency:")
     print("merged", avg_eff_m, "boosted", avg_eff_b, "resolved", avg_eff_r, "merged_wo_OR", avg_eff_m_wo_OR)
     print("Number of correct Higgs canddiate predictions")
-    print("merged", n_correct_pred_m,
-          "boosted", n_correct_pred_b,
-          "resolved", n_correct_pred_r,
-          "merged_wo_OR", n_correct_pred_m_wo_OR)
-    
+    print(
+        "merged",
+        n_correct_pred_m,
+        "boosted",
+        n_correct_pred_b,
+        "resolved",
+        n_correct_pred_r,
+        "merged_wo_OR",
+        n_correct_pred_m_wo_OR,
+    )
+
     print("Number of reconstructed Higgs targets")
-    print("merged", n_reco_target_m,
-          "boosted", n_reco_target_b,
-          "resolved", n_reco_target_r,
-          "merged_wo_OR", n_reco_target_m_wo_OR)
+    print(
+        "merged",
+        n_reco_target_m,
+        "boosted",
+        n_reco_target_b,
+        "resolved",
+        n_reco_target_r,
+        "merged_wo_OR",
+        n_reco_target_m_wo_OR,
+    )
     print("Number of Boosted Prediction:", np.array([pred for event in LUT_boosted_pred for pred in event]).shape[0])
     print(
         "Number of Resolved Prediction before OR:",
@@ -132,14 +144,14 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
 
     # construct a dict containing contents used for plotting
     # this dict will be returned in case one needs to do beyond this default plotting
-    # e.g. bins, yvals, and errors 
+    # e.g. bins, yvals, and errors
     return_dict = {}
 
     plot_bins = np.append(bins, 2 * bins[-1] - bins[-2])
     bin_centers = [(plot_bins[i] + plot_bins[i + 1]) / 2 for i in range(plot_bins.size - 1)]
     xerr = (plot_bins[1] - plot_bins[0]) / 2 * np.ones(plot_bins.shape[0] - 1)
-    return_dict['plot_bins'] = plot_bins
-    return_dict['xerr'] = xerr
+    return_dict["plot_bins"] = plot_bins
+    return_dict["xerr"] = xerr
 
     # m: merged (b+r w OR)
     # b: boosted
@@ -206,7 +218,7 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     for tag, pred_path in plot_dict.items():
         print("Processing", tag)
         results = calc_pur_eff(target_path, pred_path, bins, num_higgs)
-        return_dict[tag]=results
+        return_dict[tag] = results
 
         ax_m[0].errorbar(
             x=bin_centers, y=results["pur_m"], xerr=xerr, yerr=results["purerr_m"], fmt="o", capsize=5, label=tag
@@ -265,7 +277,7 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     plt.show()
 
     if save_path is not None:
-        fig_m.savefig(f"{save_path}/{proj_name}_merged.pdf", format="pdf")      
+        fig_m.savefig(f"{save_path}/{proj_name}_merged.pdf", format="pdf")
         fig_m_wo_OR.savefig(f"{save_path}/{proj_name}_merged_wo_OR.pdf", format="pdf")
         fig_b.savefig(f"{save_path}/{proj_name}_boosted.pdf", format="pdf")
         fig_r.savefig(f"{save_path}/{proj_name}_resolved.pdf", format="pdf")
