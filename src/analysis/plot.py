@@ -67,6 +67,13 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
         LUT_boosted_target, LUT_resolved_wOR_target, bins
     )
 
+    results["pur_m_wo_OR"], results["purerr_m_wo_OR"], avg_pur_m_wo_OR, n_correct_pred_m_wo_OR = calc_pur(
+        LUT_boosted_pred, LUT_resolved_wOR_pred, bins, overlap_removal=False
+    )
+    results["eff_m_wo_OR"], results["efferr_m_wo_OR"], avg_eff_m_wo_OR, n_reco_target_m_wo_OR = calc_eff(
+        LUT_boosted_target, LUT_resolved_wOR_target, bins, overlap_removal=False
+    )
+
     results["pur_b"], results["purerr_b"], avg_pur_b, n_correct_pred_b = calc_pur(LUT_boosted_pred, None, bins)
     results["eff_b"], results["efferr_b"], avg_eff_b, n_reco_target_b = calc_eff(LUT_boosted_target, None, bins)
 
@@ -77,13 +84,32 @@ def calc_pur_eff(target_path, pred_path, bins, num_higgs=3):
     results["eff_r_or"], results["efferr_r_or"], _, _ = calc_eff(None, LUT_resolved_target_no_OR, bins)
 
     print("Average purity:")
-    print("merged", avg_pur_m, "boosted", avg_pur_b, "resolved", avg_pur_r)
+    print("merged", avg_pur_m, "boosted", avg_pur_b, "resolved", avg_pur_r, "merged_wo_OR", avg_pur_m_wo_OR)
     print("Average efficiency:")
-    print("merged", avg_eff_m, "boosted", avg_eff_b, "resolved", avg_eff_r)
+    print("merged", avg_eff_m, "boosted", avg_eff_b, "resolved", avg_eff_r, "merged_wo_OR", avg_eff_m_wo_OR)
     print("Number of correct Higgs canddiate predictions")
-    print("merged", n_correct_pred_m, "boosted", n_correct_pred_b, "resolved", n_correct_pred_r)
+    print(
+        "merged",
+        n_correct_pred_m,
+        "boosted",
+        n_correct_pred_b,
+        "resolved",
+        n_correct_pred_r,
+        "merged_wo_OR",
+        n_correct_pred_m_wo_OR,
+    )
+
     print("Number of reconstructed Higgs targets")
-    print("merged", n_reco_target_m, "boosted", n_reco_target_b, "resolved", n_reco_target_r)
+    print(
+        "merged",
+        n_reco_target_m,
+        "boosted",
+        n_reco_target_b,
+        "resolved",
+        n_reco_target_r,
+        "merged_wo_OR",
+        n_reco_target_m_wo_OR,
+    )
     print("Number of Boosted Prediction:", np.array([pred for event in LUT_boosted_pred for pred in event]).shape[0])
     print(
         "Number of Resolved Prediction before OR:",
@@ -106,14 +132,22 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     if bins == None:
         bins = np.arange(0, 1050, 50)
 
+    # construct a dict containing contents used for plotting
+    # this dict will be returned in case one needs to do beyond this default plotting
+    # e.g. bins, yvals, and errors
+    return_dict = {}
+
     plot_bins = np.append(bins, 2 * bins[-1] - bins[-2])
     bin_centers = [(plot_bins[i] + plot_bins[i + 1]) / 2 for i in range(plot_bins.size - 1)]
     xerr = (plot_bins[1] - plot_bins[0]) / 2 * np.ones(plot_bins.shape[0] - 1)
+    return_dict["plot_bins"] = plot_bins
+    return_dict["xerr"] = xerr
 
     # m: merged (b+r w OR)
     # b: boosted
     # r: resolved
     fig_m, ax_m = plt.subplots(1, 2, figsize=(24, 10))
+    fig_m_wo_OR, ax_m_wo_OR = plt.subplots(1, 2, figsize=(24, 10))
     fig_b, ax_b = plt.subplots(1, 2, figsize=(24, 10))
     fig_r, ax_r = plt.subplots(1, 2, figsize=(24, 10))
     fig_r_or, ax_r_or = plt.subplots(1, 2, figsize=(24, 10))
@@ -125,6 +159,16 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
         # title=f"Reconstruction Purity vs. Merged Reco H pT",
     )
     ax_m[1].set(
+        xlabel=r"Gen. H $p_\mathrm{T}$ GeV",
+        ylabel=r"Reconstruction Efficiency",
+        # title=f"Reconstruction Efficiency vs. Merged Gen H pT",
+    )
+    ax_m_wo_OR[0].set(
+        xlabel=r"Reco. H $p_\mathrm{T}$ GeV",
+        ylabel=r"Reconstruction Purity",
+        # title=f"Reconstruction Purity vs. Merged Reco H pT",
+    )
+    ax_m_wo_OR[1].set(
         xlabel=r"Gen. H $p_\mathrm{T}$ GeV",
         ylabel=r"Reconstruction Efficiency",
         # title=f"Reconstruction Efficiency vs. Merged Gen H pT",
@@ -163,14 +207,20 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     # plot purities and efficiencies
     for tag, pred_path in plot_dict.items():
         print("Processing", tag)
-
         results = calc_pur_eff(target_path, pred_path, bins, num_higgs)
+        return_dict[tag] = results
 
         ax_m[0].errorbar(
             x=bin_centers, y=results["pur_m"], xerr=xerr, yerr=results["purerr_m"], fmt="o", capsize=5, label=tag
         )
         ax_m[1].errorbar(
             x=bin_centers, y=results["eff_m"], xerr=xerr, yerr=results["efferr_m"], fmt="o", capsize=5, label=tag
+        )
+        ax_m_wo_OR[0].errorbar(
+            x=bin_centers, y=results["pur_m_wo_OR"], xerr=xerr, yerr=results["purerr_m_wo_OR"], fmt="o", capsize=5, label=tag
+        )
+        ax_m_wo_OR[1].errorbar(
+            x=bin_centers, y=results["eff_m_wo_OR"], xerr=xerr, yerr=results["efferr_m_wo_OR"], fmt="o", capsize=5, label=tag
         )
         ax_b[0].errorbar(
             x=bin_centers, y=results["pur_b"], xerr=xerr, yerr=results["purerr_b"], fmt="o", capsize=5, label=tag
@@ -197,6 +247,10 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
     ax_m[1].legend(title=f"{event_type} Boosted+Resolved")
     ax_m[0].set_ylim([-0.1, 1.1])
     ax_m[1].set_ylim([-0.1, 1.1])
+    ax_m_wo_OR[0].legend(title=f"{event_type} B+R w/o Overlap-Removal")
+    ax_m_wo_OR[1].legend(title=f"{event_type} B+R w/o Overlap-Removal")
+    ax_m_wo_OR[0].set_ylim([-0.1, 1.1])
+    ax_m_wo_OR[1].set_ylim([-0.1, 1.1])
     ax_b[0].legend(title=f"{event_type} Boosted")
     ax_b[1].legend(title=f"{event_type} Boosted")
     ax_b[0].set_ylim([-0.1, 1.1])
@@ -214,8 +268,9 @@ def plot_pur_eff_w_dict(plot_dict, target_path, save_path=None, proj_name=None, 
 
     if save_path is not None:
         fig_m.savefig(f"{save_path}/{proj_name}_merged.pdf", format="pdf")
+        fig_m_wo_OR.savefig(f"{save_path}/{proj_name}_merged_wo_OR.pdf", format="pdf")
         fig_b.savefig(f"{save_path}/{proj_name}_boosted.pdf", format="pdf")
         fig_r.savefig(f"{save_path}/{proj_name}_resolved.pdf", format="pdf")
         fig_r_or.savefig(f"{save_path}/{proj_name}_resolved_wOR.pdf", format="pdf")
 
-    return
+    return return_dict

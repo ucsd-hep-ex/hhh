@@ -229,7 +229,7 @@ def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
         if np.max(goodJetIdx.layout.minmax_depth) == 1:
             goodJetIdx = ak.Array([goodJetIdx])
     else:
-        goodJetIdx = get_unoverlapped_jet_index(fjs_reco, js, dR_min=0.4)
+        goodJetIdx = get_unoverlapped_jet_index(fjs_reco, js)
 
     # Generate look-up tables
     LUT_pred = gen_pred_h_LUT(
