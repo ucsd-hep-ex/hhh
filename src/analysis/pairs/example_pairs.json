@@ -1,0 +1,6 @@
+[
+  {
+    "target": "/maad-vol/data/test_datasets/mass_900_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/mass_aware_200_1000_on_900.h5"
+  }
+]

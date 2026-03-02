@@ -1,13 +1,44 @@
+import math
+from pathlib import Path
+
 import awkward as ak
 import click
 import h5py as h5
 import numba as nb
 import numpy as np
 import vector
+import yaml
 
 vector.register_awkward()
 
 from src.analysis.utils import dp_to_HiggsNumProb, reset_collision_dp
+
+
+def parse_event_file(event_file: str | Path) -> dict:
+    """Parse event YAML and return parent names, daughter names, and display labels.
+
+    Returns:
+        dict with keys: parent_names (list), daughter_names (list), resonance_label (str),
+        decay_label (str), topology_label (str, e.g. 'HHH Resolved' or 'ss Resolved')
+    """
+    with open(event_file) as f:
+        config = yaml.safe_load(f)
+    event = config["EVENT"]
+    parent_names = sorted(event.keys())
+    first_parent = event[parent_names[0]]
+    # first_parent is list of {daughter: Jets} dicts
+    daughter_names = [list(d.keys())[0] for d in first_parent]
+    # Infer display labels from names: h1->H, s1->s; b1->b, g1->g
+    resonance_char = parent_names[0][0].upper() if parent_names[0][0].lower() != "s" else "s"
+    decay_char = daughter_names[0][0]
+    n = len(parent_names)
+    return {
+        "parent_names": parent_names,
+        "daughter_names": daughter_names,
+        "resonance_label": resonance_char,
+        "decay_label": decay_char,
+        "topology_label": f"{resonance_char * n} Resolved",
+    }
 
 
 def get_unoverlapped_jet_index(fjs, js, dR_min=0.5):
@@ -83,7 +114,11 @@ def gen_pred_h_LUT(b1_ps_passed, b2_ps_passed, b1_ts_selected, b2_ts_selected, j
             has_t_bH = -1
             bH = -1
 
-            predH_pt = (jets_e[b1_p] + jets_e[b2_p]).pt
+            # Compute dijet pt manually to avoid vector lib division-by-zero for zero-momentum sums
+            j1, j2 = jets_e[b1_p], jets_e[b2_p]
+            px = j1.pt * math.cos(j1.phi) + j2.pt * math.cos(j2.phi)
+            py = j1.pt * math.sin(j1.phi) + j2.pt * math.sin(j2.phi)
+            predH_pt = math.sqrt(px * px + py * py)
 
             for i, (b1_t, b2_t, bi_cat_H) in enumerate(zip(b1_ts_e, b2_ts_e, bi_cat_H_e)):
                 if set((b1_p, b2_p)) == set((b1_t, b2_t)):
@@ -135,61 +170,76 @@ def gen_target_h_LUT(b1_ps_passed, b2_ps_passed, b1_ts_selected, b2_ts_selected,
 
 
 def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
-    # Lists to store h_pt, h_masks, and bh_masks for each Higgs
+    """Parse resolved targets (backward-compatible wrapper for HHH->6b)."""
+    event_config = {
+        "parent_names": [f"h{i}" for i in range(1, num_higgs + 1)],
+        "daughter_names": ["b1", "b2"],
+    }
+    return parse_resolved_w_target_from_event(testfile, predfile, event_config, fjs_reco=fjs_reco)
+
+
+def parse_resolved_w_target_from_event(testfile, predfile, event_config: dict, fjs_reco=None):
+    """Parse resolved targets using event config (parent/daughter names from event file)."""
+    parent_names = event_config["parent_names"]
+    daughter_names = event_config["daughter_names"]
+    d1, d2 = daughter_names[0], daughter_names[1]
+
+    # Lists to store pt, masks, and boosted masks for each resonance
     h_pts_list = []
     h_masks_list = []
     bh_masks_list = []
 
-    for i in range(1, num_higgs + 1):
-        # Collect pt and mask for resolved Higgs
-        h_pt = np.array(testfile["TARGETS"][f"h{i}"]["pt"])
-        h_mask = np.array(testfile["TARGETS"][f"h{i}"]["mask"])
+    targets = testfile["TARGETS"]
+    pred_targets = predfile["TARGETS"]  # _PredFileWrapper maps to SpecialKey.Targets if needed
+
+    for pname in parent_names:
+        h_pt = np.array(targets[pname]["pt"])
+        h_mask = np.array(targets[pname]["mask"])
         h_pts_list.append(h_pt.reshape(-1, 1))
         h_masks_list.append(h_mask.reshape(-1, 1))
 
-        # Collect boosted mask for each Higgs
-        bh_mask = np.array(testfile["TARGETS"][f"bh{i}"]["mask"])
+        # Boosted mask: "b" + parent_name (e.g. bh1, bs1); use zeros if absent
+        bname = "b" + pname
+        if bname in targets:
+            bh_mask = np.array(targets[bname]["mask"])
+        else:
+            bh_mask = np.zeros_like(h_mask, dtype=bool)
         bh_masks_list.append(bh_mask.reshape(-1, 1))
 
-    # Combine masks and pt arrays for resolved and boosted Higgs
     h_masks = np.concatenate(h_masks_list, axis=1)
     bh_masks = np.concatenate(bh_masks_list, axis=1)
-
-    # Find out which resolved Higgs also have boosted reco
     bi_cat_H = h_masks & bh_masks
     bi_cat_H = bi_cat_H.astype(float)
     bi_cat_H = ak.Array(bi_cat_H)
 
-    # Lists for target and predicted assignments for b1 and b2
     b1_ts_list, b1_ps_list = [], []
     b2_ts_list, b2_ps_list = [], []
 
-    for i in range(1, num_higgs + 1):
-        # Collect target assignments for b1 and b2
-        b1_h_t = np.array(testfile["TARGETS"][f"h{i}"]["b1"]).astype("int")
-        b2_h_t = np.array(testfile["TARGETS"][f"h{i}"]["b2"]).astype("int")
+    for pname in parent_names:
+        b1_h_t = np.array(targets[pname][d1]).astype("int")
+        b2_h_t = np.array(targets[pname][d2]).astype("int")
         b1_ts_list.append(b1_h_t.reshape(-1, 1))
         b2_ts_list.append(b2_h_t.reshape(-1, 1))
 
-        # Collect predicted assignments for b1 and b2
-        b1_h_p = np.array(predfile["TARGETS"][f"h{i}"]["b1"]).astype("int")
-        b2_h_p = np.array(predfile["TARGETS"][f"h{i}"]["b2"]).astype("int")
+        b1_h_p = np.array(pred_targets[pname][d1]).astype("int")
+        b2_h_p = np.array(pred_targets[pname][d2]).astype("int")
         b1_ps_list.append(b1_h_p.reshape(-1, 1))
         b2_ps_list.append(b2_h_p.reshape(-1, 1))
 
-    # Lists for detection and assignment probabilities
     dp_list, ap_list = [], []
-    for i in range(1, num_higgs + 1):
-        dp_h = np.array(predfile["TARGETS"][f"h{i}"]["detection_probability"])
-        ap_h = np.array(predfile["TARGETS"][f"h{i}"]["assignment_probability"])
+    for pname in parent_names:
+        dp_h = np.array(pred_targets[pname]["detection_probability"])
+        ap_h = np.array(pred_targets[pname]["assignment_probability"])
         dp_list.append(dp_h.reshape(-1, 1))
         ap_list.append(ap_h.reshape(-1, 1))
 
-    # Reconstruct jet 4-momentum objects
-    j_pt = np.array(testfile["INPUTS"]["Jets"]["pt"])
-    j_eta = np.array(testfile["INPUTS"]["Jets"]["eta"])
-    j_phi = np.array(testfile["INPUTS"]["Jets"]["phi"])
-    j_mass = np.array(testfile["INPUTS"]["Jets"]["mass"])
+    inputs = testfile["INPUTS"]
+    j_pt = np.array(inputs["Jets"]["pt"])
+    j_eta = np.array(inputs["Jets"]["eta"])
+    j_phi = np.array(inputs["Jets"]["phi"]) if "phi" in inputs["Jets"] else np.arctan2(
+        np.array(inputs["Jets"]["sinphi"]), np.array(inputs["Jets"]["cosphi"])
+    )
+    j_mass = np.array(inputs["Jets"]["mass"])
     js = ak.zip(
         {
             "pt": j_pt,

@@ -3,8 +3,31 @@ from copy import deepcopy
 
 import awkward as ak
 import numpy as np
-from coffea.hist.plot import clopper_pearson_interval
 from sklearn.metrics import confusion_matrix
+
+try:
+    from coffea.hist.plot import clopper_pearson_interval
+except ModuleNotFoundError:
+    from scipy.stats import beta
+
+    def clopper_pearson_interval(num, denom, coverage=0.682689492137):
+        """Clopper-Pearson interval for binomial proportion. Returns the bound (low or high)
+        that is farther from the point estimate so that np.abs(result - mean) gives the error.
+        """
+        num = np.asarray(ak.to_numpy(num) if hasattr(num, "to_numpy") else num)
+        denom = np.asarray(ak.to_numpy(denom) if hasattr(denom, "to_numpy") else denom)
+        alpha = 1 - coverage
+        # avoid div by zero; 0/0 -> 0 error
+        denom = np.where(denom == 0, 1, denom)
+        n = denom.astype(np.float64)
+        k = num.astype(np.float64)
+        low = beta.ppf(alpha / 2, k, n - k + 1)
+        high = beta.ppf(1 - alpha / 2, k + 1, n - k)
+        low = np.nan_to_num(low, nan=0.0, posinf=1.0, neginf=0.0)
+        high = np.nan_to_num(high, nan=1.0, posinf=1.0, neginf=0.0)
+        mean = k / n
+        # return the bound that gives the larger error (so abs(returned - mean) = error bar)
+        return np.where(high - mean >= mean - low, high, low)
 
 
 def reset_collision_dp(dps, aps):

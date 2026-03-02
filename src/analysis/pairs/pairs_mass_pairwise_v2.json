@@ -1,0 +1,38 @@
+[
+  {
+    "target": "/maad-vol/data/test_datasets/mass_900_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_900.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_200_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_200.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_300_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_300.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_400_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_400.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_500_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_500.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_600_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_600.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_700_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_700.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_800_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_800.h5"
+  },
+  {
+    "target": "/maad-vol/data/test_datasets/mass_1000_only/combined_test.h5",
+    "prediction": "/maad-vol/spanet_predictions/pairwise_all_on_1000.h5"
+  }
+]

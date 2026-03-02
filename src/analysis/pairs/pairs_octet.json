@@ -1,0 +1,4 @@
+[
+  {"target": "/maad-vol/data/test_datasets/octet_mso_500.0_test.h5", "prediction": "/maad-vol/spanet_predictions/octet_500.h5", "baseline": "/maad-vol/chi2_predictions/octet_500/chi2_prediction.h5"},
+  {"target": "/maad-vol/data/test_datasets/octet_mso_1000.0_test.h5", "prediction": "/maad-vol/spanet_predictions/octet_1000.h5", "baseline": "/maad-vol/chi2_predictions/octet_1000/chi2_prediction.h5"}
+]
