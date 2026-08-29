@@ -1,0 +1,184 @@
+{
+  "octet_500": {
+    "SPANet": {
+      "mean_purity": 0.2982680870531338,
+      "mean_efficiency": 0.31538429643553134,
+      "num_correct_pred": 22819,
+      "num_reco_target": 22819
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.4144200978536681,
+      "mean_efficiency": 0.40856633449891505,
+      "num_correct_pred": 29561,
+      "num_reco_target": 29561
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.2586880320480721,
+      "mean_efficiency": 0.35699970975633355,
+      "num_correct_pred": 25830,
+      "num_reco_target": 25830
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.32065097646469704,
+      "mean_efficiency": 0.44251102234876233,
+      "num_correct_pred": 32017,
+      "num_reco_target": 32017
+    }
+  },
+  "octet_700": {
+    "SPANet": {
+      "mean_purity": 0.30159226853133386,
+      "mean_efficiency": 0.3380184798003642,
+      "num_correct_pred": 25059,
+      "num_reco_target": 25059
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.3919634703196347,
+      "mean_efficiency": 0.40526067309637825,
+      "num_correct_pred": 30044,
+      "num_reco_target": 30044
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.2749259526096702,
+      "mean_efficiency": 0.37060767518715854,
+      "num_correct_pred": 27475,
+      "num_reco_target": 27475
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.341678674351585,
+      "mean_efficiency": 0.46059216294597694,
+      "num_correct_pred": 34146,
+      "num_reco_target": 34146
+    }
+  },
+  "octet_900": {
+    "SPANet": {
+      "mean_purity": 0.3300001166820298,
+      "mean_efficiency": 0.3794255356256456,
+      "num_correct_pred": 28282,
+      "num_reco_target": 28282
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.43401351948954453,
+      "mean_efficiency": 0.46083258428473683,
+      "num_correct_pred": 34350,
+      "num_reco_target": 34350
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.2806254126402977,
+      "mean_efficiency": 0.37635331839708075,
+      "num_correct_pred": 28053,
+      "num_reco_target": 28053
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.351159394194026,
+      "mean_efficiency": 0.4709480942862126,
+      "num_correct_pred": 35104,
+      "num_reco_target": 35104
+    }
+  },
+  "octet_1000": {
+    "SPANet": {
+      "mean_purity": 0.3436268743647431,
+      "mean_efficiency": 0.40080723581676014,
+      "num_correct_pred": 30089,
+      "num_reco_target": 30089
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.4691175382794585,
+      "mean_efficiency": 0.5068801534547295,
+      "num_correct_pred": 38052,
+      "num_reco_target": 38052
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.2859700716200536,
+      "mean_efficiency": 0.3808261512434895,
+      "num_correct_pred": 28589,
+      "num_reco_target": 28589
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.3617712959628696,
+      "mean_efficiency": 0.48177059050765275,
+      "num_correct_pred": 36167,
+      "num_reco_target": 36167
+    }
+  },
+  "octet_1100": {
+    "SPANet": {
+      "mean_purity": 0.3550876717893169,
+      "mean_efficiency": 0.41830047984262225,
+      "num_correct_pred": 31470,
+      "num_reco_target": 31470
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.472449140132399,
+      "mean_efficiency": 0.5188946340036952,
+      "num_correct_pred": 39038,
+      "num_reco_target": 39038
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.29056973673681685,
+      "mean_efficiency": 0.3861337445004187,
+      "num_correct_pred": 29050,
+      "num_reco_target": 29050
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.3685884612306954,
+      "mean_efficiency": 0.4898116518017359,
+      "num_correct_pred": 36850,
+      "num_reco_target": 36850
+    }
+  },
+  "octet_1300": {
+    "SPANet": {
+      "mean_purity": 0.3615238262820442,
+      "mean_efficiency": 0.4336006542327275,
+      "num_correct_pred": 32873,
+      "num_reco_target": 32873
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.4764277006751688,
+      "mean_efficiency": 0.5361147017701217,
+      "num_correct_pred": 40645,
+      "num_reco_target": 40645
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.2979936388549939,
+      "mean_efficiency": 0.39298810246128685,
+      "num_correct_pred": 29794,
+      "num_reco_target": 29794
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.37780800544097937,
+      "mean_efficiency": 0.498245706597726,
+      "num_correct_pred": 37774,
+      "num_reco_target": 37774
+    }
+  },
+  "octet_1500": {
+    "SPANet": {
+      "mean_purity": 0.355382605973597,
+      "mean_efficiency": 0.43237812565665057,
+      "num_correct_pred": 32923,
+      "num_reco_target": 32923
+    },
+    "SPANet_w_pairwise": {
+      "mean_purity": 0.4827338375714432,
+      "mean_efficiency": 0.5557233662534146,
+      "num_correct_pred": 42315,
+      "num_reco_target": 42315
+    },
+    "$\\chi^2$ mass agnostic": {
+      "mean_purity": 0.300672094093173,
+      "mean_efficiency": 0.3948177138054213,
+      "num_correct_pred": 30063,
+      "num_reco_target": 30063
+    },
+    "$\\chi^2$ mass aware": {
+      "mean_purity": 0.38970455863820935,
+      "mean_efficiency": 0.5117277789451565,
+      "num_correct_pred": 38965,
+      "num_reco_target": 38965
+    }
+  }
+}

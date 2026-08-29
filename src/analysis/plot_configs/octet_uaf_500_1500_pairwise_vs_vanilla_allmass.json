@@ -1,0 +1,90 @@
+[
+  {
+    "tag": "octet_500",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_500.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_500.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_500.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_500/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_500/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_600",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_600.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_600.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_600.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_600/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_600/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_700",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_700.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_700.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_700.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_700/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_700/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_800",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_800.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_800.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_800.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_800/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_800/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_900",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_900.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_900.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_900.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_900/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_900/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_1000",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_1000.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_1000.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_1000.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_1000/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_1000/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_1100",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_1100.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_1100.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_1100.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_1100/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_1100/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_1200",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_1200.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_1200.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_1200.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_1200/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_1200/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_1300",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_1300.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_1300.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_1300.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_1300/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_1300/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_1400",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_1400.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_1400.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_1400.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_1400/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_1400/chi2_prediction.h5"
+  },
+  {
+    "tag": "octet_1500",
+    "target": "/maad-vol/data/octet_uaf_test_datasets/octet_mso_1500.0_test.h5",
+    "SPANet_pairwise (epoch230)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_pairwise_on_1500.h5",
+    "SPANet (epoch36)": "/maad-vol/spanet_predictions/octet_uaf_500_1500_on_1500.h5",
+    "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_uaf_1500/chi2_prediction.h5",
+    "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_uaf_1500/chi2_prediction.h5"
+  }
+]

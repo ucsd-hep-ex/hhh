@@ -1,0 +1,16 @@
+[
+  {"tag": "octet_500", 
+   "target": "/maad-vol/data/test_datasets/octet_mso_500.0_test.h5",
+   "SPANet": "/maad-vol/spanet_predictions/octet_500.h5",
+   "SPANet_ex_var": "/maad-vol/spanet_predictions/octet/500_extra_var_on_500.h5",
+   "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_500/mass_aware_octet_500.h5",
+   "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_500/mass_agnostic_octet_500.h5"
+  },
+  {"tag": "octet_1000", 
+   "target": "/maad-vol/data/test_datasets/octet_mso_1000.0_test.h5",
+   "SPANet": "/maad-vol/spanet_predictions/octet_1000.h5",
+   "SPANet_ex_var": "/maad-vol/spanet_predictions/octet/1000_extra_var_on_1000.h5",
+   "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_1000/mass_aware_octet_1000.h5",
+   "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_1000/mass_agnostic_octet_1000.h5"
+  }
+]

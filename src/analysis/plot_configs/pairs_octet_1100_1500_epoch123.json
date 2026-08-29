@@ -1,0 +1,17 @@
+[
+  {"tag": "octet_1100",
+   "target": "/maad-vol/data/octet_test_datasets/octet_mso_1100.0_test.h5",
+   "SPANet_pairwise": "/maad-vol/spanet_predictions/octet_1100_1500_pairwise_on_1100_epoch123.h5",
+   "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_1100/chi2_prediction.h5",
+   "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_1100/chi2_prediction.h5"},
+  {"tag": "octet_1300",
+   "target": "/maad-vol/data/octet_test_datasets/octet_mso_1300.0_test.h5",
+   "SPANet_pairwise": "/maad-vol/spanet_predictions/octet_1100_1500_pairwise_on_1300_epoch123.h5",
+   "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_1300/chi2_prediction.h5",
+   "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_1300/chi2_prediction.h5"},
+  {"tag": "octet_1500",
+   "target": "/maad-vol/data/octet_test_datasets/octet_mso_1500.0_test.h5",
+   "SPANet_pairwise": "/maad-vol/spanet_predictions/octet_1100_1500_pairwise_on_1500_epoch123.h5",
+   "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_1500/chi2_prediction.h5",
+   "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_1500/chi2_prediction.h5"}
+]

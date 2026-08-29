@@ -1,0 +1,6 @@
+[
+  {"tag": "octet_500",
+   "target": "/maad-vol/data/octet_train_datasets/octet_mso_500.0_train.h5",
+   "SPANet_w_pairwise": "/maad-vol/spanet_predictions/octet_combine_pairwise_on_training_500_last.h5"
+  }
+]

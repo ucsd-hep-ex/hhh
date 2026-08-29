@@ -1,0 +1,7 @@
+[
+  {"tag": "octet_500",
+   "target": "/maad-vol/data/octet_test_datasets/octet_mso_500.0_test.h5",
+   "SPANet_pairwise": "/maad-vol/spanet_predictions/octet_500_pairwise_on_500_epoch385.h5",
+   "$\\chi^2$ mass agnostic": "/maad-vol/chi2_predictions/mass_agnostic_octet_500/chi2_prediction.h5",
+   "$\\chi^2$ mass aware": "/maad-vol/chi2_predictions/mass_aware_octet_500/chi2_prediction.h5"}
+]

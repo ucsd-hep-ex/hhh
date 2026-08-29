@@ -48,10 +48,14 @@ def get_unoverlapped_jet_index(fjs, js, dR_min=0.5):
     return jet_index_passed
 
 
-def sel_pred_h_by_dp_ap(dps, aps, b1_ps, b2_ps):
-    # get most possible number of H_reco by dps
-    HiggsNumProb = dp_to_HiggsNumProb(dps)
-    HiggsNum = np.argmax(HiggsNumProb, axis=-1)
+def sel_pred_h_by_dp_ap(dps, aps, b1_ps, b2_ps, assume_all_acceptable=False):
+    # get most possible number of H_reco by dps (or assume max if assume_all_acceptable)
+    Nmax = dps.shape[-1]
+    if assume_all_acceptable:
+        HiggsNum = np.full(dps.shape[0], Nmax, dtype=np.intp)
+    else:
+        HiggsNumProb = dp_to_HiggsNumProb(dps)
+        HiggsNum = np.argmax(HiggsNumProb, axis=-1)
 
     # get the top N (dp x ap) jet assignment indices
     ps = dps * aps
@@ -178,7 +182,7 @@ def parse_resolved_w_target(testfile, predfile, num_higgs=3, fjs_reco=None):
     return parse_resolved_w_target_from_event(testfile, predfile, event_config, fjs_reco=fjs_reco)
 
 
-def parse_resolved_w_target_from_event(testfile, predfile, event_config: dict, fjs_reco=None):
+def parse_resolved_w_target_from_event(testfile, predfile, event_config: dict, fjs_reco=None, assume_all_acceptable=False):
     """Parse resolved targets using event config (parent/daughter names from event file)."""
     parent_names = event_config["parent_names"]
     daughter_names = event_config["daughter_names"]
@@ -271,7 +275,7 @@ def parse_resolved_w_target_from_event(testfile, predfile, event_config: dict, f
     b1_ts_selected, b2_ts_selected, targetH_selected_pts, bi_cat_H_selected = sel_target_h_by_mask(
         b1_ts, b2_ts, h_pts, bi_cat_H, h_masks
     )
-    b1_ps_selected, b2_ps_selected = sel_pred_h_by_dp_ap(dps, aps, b1_ps, b2_ps)
+    b1_ps_selected, b2_ps_selected = sel_pred_h_by_dp_ap(dps, aps, b1_ps, b2_ps, assume_all_acceptable=assume_all_acceptable)
 
     # Find jets that are overlapped with reco boosted Higgs
     if fjs_reco is None:
